@@ -18,12 +18,22 @@ using std::list;
 #define MAX(x, y) x > y ? x : y
 #define MIN(x, y) x <= y ? x: y
 #define __int64 long long
+#define EMPTY_SPACE_MAP_CHAR 0
+#define OBSTACLE_MAP_CHAR 1
+#define ROBOT_MAP_CHAR 2
+#define ROBOT_PATH_MAP_CHAR 3
 
+enum active_cyc_mode {
+	_speed_setting_,
+	_rotation_setting_
+};
 
 typedef float sens_det_dist_;
 typedef float _angle_type;
 typedef float _speed_type;
 typedef int8_t map_state_t_;
+typedef uint8_t _sensor_num_type;
+
 typedef struct {
 	float peak;
 	float right_boarder;
@@ -50,3 +60,4 @@ typedef struct sensor_point_ {
 	//  DON'T depends orientation (placed in local coordinate system) left sensor points are negative, right - positive, center - 0
 	_angle_type angle_from_center;
 }sensor_point;
+

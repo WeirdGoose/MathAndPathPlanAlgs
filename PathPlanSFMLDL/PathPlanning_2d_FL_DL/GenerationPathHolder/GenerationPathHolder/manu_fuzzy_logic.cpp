@@ -60,13 +60,30 @@ _speed_type fuzzy_speed_set(_speed_type max_speed,
 	return terms[it_of_max].speed_nav;
 }
 
-/*
-_angle_type fuzzy_angle_set(_angle_type angle, sensor_point *senses)
+
+_angle_type fuzzy_angle_set(sensor_point *sensor_points_ptr,
+							obstacle_point &orient_repulsive,
+							_sensor_num_type rob_lines_num,
+							obstacle_point position,
+							int sens_react_rad)
 {
-	_angle_type out_angle;
+	obstacle_point anoth_dist;
+	float norm_scal;
+	orient_repulsive.x = 0;
+	orient_repulsive.y = 0;
 
-
-
+	for (_sensor_num_type i = 0; i < rob_lines_num; ++i)
+	{
+		if (sensor_points_ptr[i].state == OBSTACLE_MAP_CHAR
+			&& sensor_points_ptr[i].distant < sens_react_rad)
+		{
+			norm_scal = (sens_react_rad - sensor_points_ptr[i].distant) / sensor_points_ptr[i].distant;
+			anoth_dist.x = (position.x + norm_scal * sensor_points_ptr[i].pos.x) / (1 + norm_scal);
+			anoth_dist.y = (position.y + norm_scal * sensor_points_ptr[i].pos.y) / (1 + norm_scal);
+			orient_repulsive.x = (anoth_dist.x - position.x);
+			orient_repulsive.y = (anoth_dist.y - position.y);
+		}
+	}
 	return out_angle;
 }
-*/
+

@@ -8,8 +8,6 @@
 #include "gen_pars.h"
 
 // header of the main programm
-#define AIM_RADIUS	6
-
 
 class simulation {
 	bool simulation_run = 0;
@@ -36,6 +34,7 @@ void draw_map(	sf::RenderWindow &win,
 void scene_movment(	Whole_map &map, 
 					robot_params &rob_base, 
 					simulation &sim	);
+void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_point rob_pos);
 void robot_logic(Whole_map &map, 
 					robot_params &rob_base,
 					simulation &sim);

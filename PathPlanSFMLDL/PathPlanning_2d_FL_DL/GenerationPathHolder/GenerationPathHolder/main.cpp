@@ -63,7 +63,11 @@ void set_map(Whole_map &map)
 	quadro1.x = 250;
 	quadro1.y = 250;
 	map.create_quadro_obstacle(50, 50, quadro1, 3);
-	
+	map.aim.x = AIM_POS_X;
+	map.aim.y = AIM_POS_Y;
+	map.rob_position.x = START_ROBOT_POS_X;
+	map.rob_position.y = START_ROBOT_POS_Y;
+
 }
 
 void draw_map(	sf::RenderWindow &win, 
@@ -175,36 +179,96 @@ void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
 	}
 	sim.off_simulation();
 }
+// checked is there are obstacle by compare points of every sensor line with obstacle coordinates
+void check_sensors(Whole_map &map, robot_params &rob_base)
+{
+	sensor_point *sensor_points_ptr;
+	sensor_points_ptr = rob_base.get_sensor_points();
+	sensor_point sens_obs;
+	map_point sens_disc;
+	map_point rob_pos_disc;
+	
+	for (_sensor_num_type i = 0; i < rob_base.rob_lines_num; ++i)
+	{
+		sens_obs = sensor_points_ptr[i];
+		rob_base.sensors_trigg(i, LINES_RADIUS + 1, EMPTY_SPACE_MAP_CHAR);
+		for (int8_t j = 0; j < rob_base.sens_math_lambdas.size(); ++j)
+		{
+			sens_disc.x = (rob_base.position.x + rob_base.sens_math_lambdas[j] * sens_obs.pos.x) / (1 + rob_base.sens_math_lambdas[j]);
+			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
+			if (map.at(sens_disc.x, sens_disc.y) == OBSTACLE_MAP_CHAR)
+			{
+				rob_base.sensors_trigg(i, j, OBSTACLE_MAP_CHAR);
+				break;
+			}
+		}
+	}
+	// return the pointer to sensor_array
+}
 
+void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_point rob_pos)
+{
+	//cout << "---------------sensor lines coodrinates redir--------------- \n\n\n";
+	// right
+
+	for (_sensor_num_type i = 0; i < LINES_NUMBER / 2 + 1; ++i)
+	{
+		sensor_points[i].pos.x = rob_pos.x + LINES_RADIUS * cos(SENSOR_RAD_STEP * i + angle);
+		sensor_points[i].pos.y = rob_pos.y + LINES_RADIUS * sin(SENSOR_RAD_STEP * i + angle);
+		sensor_points[i].state = EMPTY_SPACE_MAP_CHAR;
+		sensor_points[i].distant = 0;
+		//cout << "x - " << this->sensor_points[i].pos.x << "\t| y - " << this->sensor_points[i].pos.y << "\n-----------------\n";
+	}
+
+	// left
+	for (_sensor_num_type i = LINES_NUMBER / 2 + 1; i < LINES_NUMBER; ++i)
+	{
+		sensor_points[i].pos.x = rob_pos.x + LINES_RADIUS * cos(-SENSOR_RAD_STEP * (i - LINES_NUMBER / 2) + angle);
+		sensor_points[i].pos.y = rob_pos.y + LINES_RADIUS * sin(-SENSOR_RAD_STEP * (i - LINES_NUMBER / 2) + angle);
+		sensor_points[i].state = EMPTY_SPACE_MAP_CHAR;
+		sensor_points[i].distant = 0;
+		//cout << "x - " << this->sensor_points[i].pos.x << "\t| y - " << this->sensor_points[i].pos.y << "\n-----------------\n";
+	}
+}
 
 // moves through the map, depending on speed, orientation and delta t
-void make_one_step(robot_params &rob_base)
+void make_one_step(Whole_map &map, robot_params &rob_base)
 {
-	obstacle_point direction = rob_base.get_orientation();
-	_speed_type speed = rob_base.get_speed();
-	rob_base.position.x = rob_base.position.x + speed * cos(rob_base.orientation_angle) * rob_base.delta_t;
-	rob_base.position.y = rob_base.position.y + speed * sin(rob_base.orientation_angle) * rob_base.delta_t;
-
+	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
+	map.orientation_angle = rob_base.orientation_angle + ROB_ERROR_ROTATION;
+	map.rob_position.x = rob_base.position.x + real_speed * cos(map.orientation_angle) * rob_base.delta_t;
+	map.rob_position.y = rob_base.position.y + real_speed * sin(map.orientation_angle) * rob_base.delta_t;
+	rob_base.position.x = map.rob_position.x;
+	rob_base.position.y = map.rob_position.y;
+	rob_base.orientation_angle = map.orientation_angle;
+	if (map.at(map.rob_position.x, map.rob_position.y) == OBSTACLE_MAP_CHAR) 
+	{
+		real_speed = 0;
+	}
+	rob_base.set_speed(real_speed);
 }
 
 void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 {
 	std::unique_lock<std::mutex> uLock(synchMutex);
-	sensor_point *sensor_points_ptr;
+	sensor_point *sensor_points_ptr; 
+	BOOL exit_ctrl = 0;
+	sensor_points_ptr = rob_base.get_sensor_points();
 	while (sim.simulation_state()) 
 	{
 		synchCndVar.wait(uLock);
-		robot_active_cyc(map, rob_base);
-		make_one_step(rob_base);
-		if (rob_base.position.x <= rob_base.aim.x + AIM_RADIUS
-			&& rob_base.position.x >= rob_base.aim.x - AIM_RADIUS)
-		{
-			if (rob_base.position.y <= rob_base.aim.y + AIM_RADIUS
-				&& rob_base.position.y >= rob_base.aim.y - AIM_RADIUS)
-			{
-				return;
-			}
-		}
-	}
+		if (exit_ctrl)
+			return;
+		check_sensors(map, rob_base);
+		exit_ctrl = robot_active_cyc(map, rob_base, _rotation_setting_);
+		sensor_points_ptr = rob_base.get_sensor_points();
+		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
+		
+		check_sensors(map, rob_base);
+		exit_ctrl = robot_active_cyc(map, rob_base, _speed_setting_);
 
+		make_one_step(map, rob_base);
+		//sensor_points_ptr = rob_base.get_sensor_points();
+		//direct_sensors(sensor_points_ptr, map.orientation_angle, map.rob_position);
+	}
 }

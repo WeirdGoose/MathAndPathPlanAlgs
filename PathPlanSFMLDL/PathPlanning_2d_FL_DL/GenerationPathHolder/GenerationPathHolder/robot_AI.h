@@ -16,14 +16,15 @@
 #define MAX_SPEED_2 MAX_SPEED*MAX_SPEED
 #define START_SPEED MAX_SPEED
 
-#define LINES_NUMBER 5
+#define LINES_NUMBER 11
 #define LINES_RADIUS 30
 #define NUM_OF_SENS_CHK_STEPS 30
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
 #define ORIENT_DIST LINES_RADIUS
+#define AIM_RADIUS	6
 
-typedef uint8_t _sensor_num_type;
+
 
 
 class robot_params 
@@ -97,7 +98,7 @@ public:
 		this->orientation_angle = M_PI + atan2((this->position.y - this->orientation.y) , (this->position.x - this->orientation.x));
 		
 		cout << "angle " << this->orientation_angle << "\n";
-		direct_sensors(this->orientation_angle, this->position);
+		//direct_sensors(this->orientation_angle, this->position);
 	}
 	// changing sensors direction caused by rotation of robot
 	void set_direction_by_angle(_angle_type angle)
@@ -112,7 +113,7 @@ public:
 		this->position.x = pos.x;
 		this->position.y = pos.y;
 		cout << "robot_params:: rob position x, y is " << pos.x << ", " << pos.y << "\n";
-		set_direction_by_angle(angle);
+		//set_direction_by_angle(angle);
 		this->sens_math_lambdas.resize(NUM_OF_SENS_CHK_STEPS);
 		// setting lambdas (there can be linear or another correlation)
 		for (int i = sens_math_lambdas.size() - 1; i >= 0; --i)
@@ -138,4 +139,8 @@ public:
 };
 
 void init_logic(Whole_map &map, robot_params &rob_base);
-void robot_active_cyc(Whole_map &map, robot_params &rob_base);
+void calc_orient_repulsive(	sensor_point *sensor_points_ptr,
+							obstacle_point &orient_repulsive,
+							_sensor_num_type rob_lines_num,
+							obstacle_point position);
+BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mode mode);

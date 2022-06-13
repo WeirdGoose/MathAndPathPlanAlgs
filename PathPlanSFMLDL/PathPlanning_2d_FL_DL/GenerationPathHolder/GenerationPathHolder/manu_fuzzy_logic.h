@@ -22,4 +22,7 @@ _speed_type fuzzy_speed_set(_speed_type max_speed,
 							sens_det_dist_ actDistToObs,
 							sens_det_dist_ maxDistToObs,
 							std::vector<triangle_term_> terms);
-_angle_type fuzzy_angle_set(_angle_type angle, sensor_point * senses);
+_angle_type fuzzy_angle_set(sensor_point *sensor_points_ptr,
+							obstacle_point &orient_repulsive,
+							_sensor_num_type rob_lines_num,
+							obstacle_point position);

@@ -5,12 +5,11 @@
 #include <SFML/Graphics.hpp>
 #include "gen_pars.h"
 // file access to that everyone has, here's also general defs and usings
-#define EMPTY_SPACE_MAP_CHAR 0
-#define OBSTACLE_MAP_CHAR 1
-#define ROBOT_MAP_CHAR 2
-#define ROBOT_PATH_MAP_CHAR 3
+
 
 #define GRID_VAL 1
+#define ROB_ERROR_SPEED 0.2
+#define ROB_ERROR_ROTATION 0.000112
 
 
 class Whole_map
@@ -39,6 +38,8 @@ private:
 	}
 public:
 	obstacle_point aim;
+	obstacle_point rob_position;
+	_angle_type orientation_angle;
 	unsigned long obstacles_weight = 0;
 	Whole_map(unsigned int width, unsigned int height) :
 		map_points(width, Column(height)) {
@@ -84,9 +85,20 @@ public:
 		cout << "---------------quadro obs coodrinates--------------- \n\n\n";
 		cout << "width \n\n\n";
 		obstacles_weight += width * height;
+		for (int j = 0; j < scale; ++j)
+		{
+			another_point.x = center_point.x - (width / 2) + width + 1;
+			another_point.y = center_point.y + height / 2 + j;
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+
+			another_point.x = center_point.x + width / 2 + j;
+			another_point.y = center_point.y - (height / 2) + height + 1;
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+		}
+
 		for (unsigned int i = 0; i < width; i++)
 		{
-			for (int j = -scale; j < scale; ++j)
+			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y - height / 2 + j;
@@ -94,7 +106,7 @@ public:
 			}
 			
 			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
-			for (int j = -scale; j < scale; ++j)
+			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y + height / 2 + j;
@@ -105,9 +117,10 @@ public:
 		}
 		cout << "\n\n\nHEIGHT \n\n\n";
 		// init verical lines
+
 		for (unsigned int i = 0; i < height; ++i)
 		{
-			for (int j = -scale; j < scale; ++j)
+			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
@@ -115,7 +128,7 @@ public:
 			}
 			
 			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
-			for (int j = -scale; j < scale; ++j)
+			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x + width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
