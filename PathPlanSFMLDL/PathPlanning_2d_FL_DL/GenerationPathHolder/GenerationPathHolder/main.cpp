@@ -79,6 +79,7 @@ void draw_map(	sf::RenderWindow &win,
 	sf::CircleShape Circle_aim(3.f);
 	sf::CircleShape Circle_sens_line(1.f);
 	sf::CircleShape Circle_orient(1.f);
+
 	unsigned int k = 0;
 	Circle1.setFillColor(sf::Color::Green);
 	Circle_path.setFillColor(sf::Color::Red);
@@ -131,6 +132,7 @@ void draw_map(	sf::RenderWindow &win,
 	Circle_orient.setFillColor(sf::Color::Red);
 	Circle_orient.setPosition(orient.x, orient.y);
 	win.draw(Circle_orient);
+
 }
 
 void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
@@ -182,13 +184,13 @@ void make_one_step(robot_params &rob_base)
 	_speed_type speed = rob_base.get_speed();
 	rob_base.position.x = rob_base.position.x + speed * cos(rob_base.orientation_angle) * rob_base.delta_t;
 	rob_base.position.y = rob_base.position.y + speed * sin(rob_base.orientation_angle) * rob_base.delta_t;
-	
+
 }
 
 void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 {
 	std::unique_lock<std::mutex> uLock(synchMutex);
-	
+	sensor_point *sensor_points_ptr;
 	while (sim.simulation_state()) 
 	{
 		synchCndVar.wait(uLock);

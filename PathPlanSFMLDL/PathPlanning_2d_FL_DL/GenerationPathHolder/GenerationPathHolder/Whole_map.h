@@ -77,7 +77,7 @@ public:
 	void create_quadro_obstacle(unsigned int width,
 								unsigned int height,
 								obstacle_point center_point, 
-								unsigned int scale = 1)
+								int scale = 1)
 	{
 		map_point another_point;
 		// init horizontal lines
@@ -86,7 +86,7 @@ public:
 		obstacles_weight += width * height;
 		for (unsigned int i = 0; i < width; i++)
 		{
-			for (unsigned int j = 0; j < scale; ++j)
+			for (int j = -scale; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y - height / 2 + j;
@@ -94,7 +94,7 @@ public:
 			}
 			
 			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
-			for (unsigned int j = 0; j < scale; ++j)
+			for (int j = -scale; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y + height / 2 + j;
@@ -107,7 +107,7 @@ public:
 		// init verical lines
 		for (unsigned int i = 0; i < height; ++i)
 		{
-			for (unsigned int j = 0; j < scale; ++j)
+			for (int j = -scale; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
@@ -115,7 +115,7 @@ public:
 			}
 			
 			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
-			for (unsigned int j = 0; j < scale; ++j)
+			for (int j = -scale; j < scale; ++j)
 			{
 				another_point.x = center_point.x + width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;

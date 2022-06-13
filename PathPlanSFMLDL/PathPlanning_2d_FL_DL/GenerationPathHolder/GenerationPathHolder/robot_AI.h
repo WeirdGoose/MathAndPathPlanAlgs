@@ -4,12 +4,12 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 190
-#define START_ROBOT_POS_Y 190
+#define START_ROBOT_POS_X 300
+#define START_ROBOT_POS_Y 300
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
-#define AIM_POS_X 300
-#define AIM_POS_Y 300
+#define AIM_POS_X 190
+#define AIM_POS_Y 190
 #define START_ANGLE 0
 #define START_DELTA_T 0.5		// seems to be float
 #define MAX_SPEED	7.0
@@ -64,6 +64,8 @@ public:
 	obstacle_point aim;
 	obstacle_point position;
 	_angle_type orientation_angle;
+	obstacle_point orient_attractive;
+	obstacle_point orient_repulsive;
 	unsigned int rob_lines_num = LINES_NUMBER;
 	robot_params(){}
 	obstacle_point& at(unsigned int i)
@@ -91,8 +93,10 @@ public:
 	{
 		this->orientation.x = direction.x;
 		this->orientation.y = direction.y;
-		this->orientation_angle = atan((this->orientation.x - this->position.x)/ (this->orientation.y - this->position.y));
-
+		
+		this->orientation_angle = M_PI + atan2((this->position.y - this->orientation.y) , (this->position.x - this->orientation.x));
+		
+		cout << "angle " << this->orientation_angle << "\n";
 		direct_sensors(this->orientation_angle, this->position);
 	}
 	// changing sensors direction caused by rotation of robot
