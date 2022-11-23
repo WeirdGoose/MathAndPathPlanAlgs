@@ -25,7 +25,8 @@ using std::list;
 
 enum active_cyc_mode {
 	_speed_setting_,
-	_rotation_setting_
+	_rotation_setting_,
+	_fuzzy_set_
 };
 
 typedef float sens_det_dist_;

@@ -45,6 +45,7 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+
 *_i.c
 *_p.c
 *_i.h
@@ -69,6 +70,8 @@ artifacts/
 *.pidb
 *.svclog
 *.scc
+*.ipch
+
 
 # Chutzpah Test files
 _Chutzpah*
@@ -259,3 +262,4 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+*.db

@@ -60,13 +60,20 @@ int main()
 void set_map(Whole_map &map) 
 {
 	obstacle_point quadro1;
-	quadro1.x = 250;
-	quadro1.y = 250;
+	obstacle_point quadro2;
+	quadro1.x = 180;
+	quadro1.y = 210;
+	quadro2.x = 290;
+	quadro2.y = 260;
 	map.create_quadro_obstacle(50, 50, quadro1, 3);
+	map.create_quadro_obstacle(50, 50, quadro2, 3);
+
 	map.aim.x = AIM_POS_X;
 	map.aim.y = AIM_POS_Y;
 	map.rob_position.x = START_ROBOT_POS_X;
 	map.rob_position.y = START_ROBOT_POS_Y;
+
+
 
 }
 
@@ -236,15 +243,16 @@ void make_one_step(Whole_map &map, robot_params &rob_base)
 {
 	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
 	map.orientation_angle = rob_base.orientation_angle + ROB_ERROR_ROTATION;
+	if (map.at(map.rob_position.x, map.rob_position.y) == OBSTACLE_MAP_CHAR)
+	{
+		real_speed = 0;
+	}
 	map.rob_position.x = rob_base.position.x + real_speed * cos(map.orientation_angle) * rob_base.delta_t;
 	map.rob_position.y = rob_base.position.y + real_speed * sin(map.orientation_angle) * rob_base.delta_t;
 	rob_base.position.x = map.rob_position.x;
 	rob_base.position.y = map.rob_position.y;
 	rob_base.orientation_angle = map.orientation_angle;
-	if (map.at(map.rob_position.x, map.rob_position.y) == OBSTACLE_MAP_CHAR) 
-	{
-		real_speed = 0;
-	}
+	
 	rob_base.set_speed(real_speed);
 }
 
@@ -258,9 +266,18 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	{
 		synchCndVar.wait(uLock);
 		if (exit_ctrl)
+		{
+			delete rob_base.engine;
+			delete rob_base.fl_speed;
+			delete rob_base.fl_obs_angle;
+			delete rob_base.mSteer;
+			delete rob_base.fl_outSpeed;
+			delete rob_base.mamdani;
+
 			return;
+		}
 		check_sensors(map, rob_base);
-		exit_ctrl = robot_active_cyc(map, rob_base, _rotation_setting_);
+		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 		sensor_points_ptr = rob_base.get_sensor_points();
 		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
 		
