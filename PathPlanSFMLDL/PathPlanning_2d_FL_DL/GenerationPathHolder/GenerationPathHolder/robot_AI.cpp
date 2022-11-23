@@ -1,4 +1,4 @@
-#include "robot_Ai.h"
+﻿#include "robot_Ai.h"
 #include "gen_pars.h"
 #include "manu_fuzzy_logic.h"
 #include "genetic_algh.h"
@@ -12,47 +12,35 @@ const float pos_sc_fact = 4;
 const float rob_rad = 1;
 const int sens_react_rad = 29;
 
-
-void init_logic(Whole_map &map, robot_params &rob_base) 
+// для ген алгоритма (считается, что позиция уже выставленна)
+void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
 {
-	obstacle_point start_pos;
-	start_pos.x = START_ROBOT_POS_X;
-	start_pos.y = START_ROBOT_POS_Y;
-
 	rob_base.delta_t = START_DELTA_T;
 
 	rob_base.aim.x = AIM_POS_X;
 	rob_base.aim.y = AIM_POS_Y;
 	rob_base.set_speed(START_SPEED);
-	rob_base.set_start_pos_and_dir(start_pos, START_ANGLE);
-	rob_base.terms.resize(SPEED_TERMS_NUM);
 	
-	rob_base.engine =		new fl::Engine;
-	rob_base.fl_speed =		new fl::InputVariable;
+	rob_base.identificator = identificator;
+	
+	rob_base.engine = new fl::Engine;
+	rob_base.fl_speed = new fl::InputVariable;
 	rob_base.fl_obs_angle = new fl::InputVariable;
-	rob_base.mSteer =		new fl::OutputVariable;
-	rob_base.fl_outSpeed =	new fl::OutputVariable;
-	rob_base.mamdani =		new fl::RuleBlock;
+	rob_base.mSteer = new fl::OutputVariable;
+	rob_base.fl_outSpeed = new fl::OutputVariable;
+	rob_base.mamdani = new fl::RuleBlock;
 
-	init_fuzzy(rob_base.engine, 
-		rob_base.fl_speed, 
-		rob_base.fl_obs_angle, 
-		rob_base.mSteer, 
-		rob_base.fl_outSpeed, 
+	init_fuzzy(rob_base.engine,
+		rob_base.fl_speed,
+		rob_base.fl_obs_angle,
+		rob_base.mSteer,
+		rob_base.fl_outSpeed,
 		rob_base.mamdani);
-	
-	cout << "|i \t|left board \t|peak \t|right board \t|\n";
-	for (unsigned i = 0; i < rob_base.terms.size(); ++i)
-	{
-		rob_base.terms[i].peak = LINES_RADIUS / 6 +i*LINES_RADIUS/ rob_base.terms.size();
-		rob_base.terms[i].right_boarder = rob_base.terms[i].peak + LINES_RADIUS / 6;
-		rob_base.terms[i].left_boarder = rob_base.terms[i].peak - LINES_RADIUS / 6;
-		rob_base.terms[i].speed_nav = MAX_SPEED - MAX_SPEED/(i + 1) + MAX_SPEED/ rob_base.terms.size();
-		cout << "|" << rob_base.terms[i].left_boarder << "|" << rob_base.terms[i].peak << "|" << rob_base.terms[i].right_boarder << "|\n";
-	}
+
 	rob_base.orient_repulsive.y = 0;
 	rob_base.orient_repulsive.x = 0;
 }
+
 
 float sens_loc_angle_by_num(_sensor_num_type num)
 {

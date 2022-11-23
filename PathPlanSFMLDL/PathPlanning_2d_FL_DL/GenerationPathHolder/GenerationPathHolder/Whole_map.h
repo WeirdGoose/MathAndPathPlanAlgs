@@ -11,6 +11,10 @@
 #define ROB_ERROR_SPEED 0.2
 #define ROB_ERROR_ROTATION 0.000112
 
+#define GEN_POPULATION 5
+
+#define MAX_MAP_SIZE_X 500
+#define MAX_MAP_SIZE_Y 500
 
 class Whole_map
 {
@@ -38,7 +42,8 @@ private:
 	}
 public:
 	obstacle_point aim;
-	obstacle_point rob_position;
+	std::vector<map_point> short_obs;
+	std::vector<obstacle_point> robs_positions;
 	_angle_type orientation_angle;
 	unsigned long obstacles_weight = 0;
 	Whole_map(unsigned int width, unsigned int height) :
@@ -75,6 +80,10 @@ public:
 			return 0;
 		}
 	}
+	void update_short_obs(map_point anoth_point)
+	{
+		this->short_obs.push_back(anoth_point);
+	}
 	void create_quadro_obstacle(unsigned int width,
 								unsigned int height,
 								obstacle_point center_point, 
@@ -90,10 +99,12 @@ public:
 			another_point.x = center_point.x - (width / 2) + width + 1;
 			another_point.y = center_point.y + height / 2 + j;
 			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
 
 			another_point.x = center_point.x + width / 2 + j;
 			another_point.y = center_point.y - (height / 2) + height + 1;
 			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
 		}
 
 		for (unsigned int i = 0; i < width; i++)
@@ -103,16 +114,16 @@ public:
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y - height / 2 + j;
 				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+				update_short_obs(another_point);
 			}
 			
-			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
 			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y + height / 2 + j;
 				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+				update_short_obs(another_point);
 			}
-			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
 
 		}
 		cout << "\n\n\nHEIGHT \n\n\n";
@@ -125,16 +136,16 @@ public:
 				another_point.x = center_point.x - width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
 				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+				update_short_obs(another_point);
 			}
 			
-			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
 			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x + width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
 				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+				update_short_obs(another_point);
 			}
-			cout << "x - " << another_point.x << "\t| y - " << another_point.y << "\n-----------------\n";
 		}
 	}
 };

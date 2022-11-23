@@ -29,6 +29,7 @@ enum active_cyc_mode {
 	_fuzzy_set_
 };
 
+typedef uint8_t rob_pop_type_;
 typedef float sens_det_dist_;
 typedef float _angle_type;
 typedef float _speed_type;

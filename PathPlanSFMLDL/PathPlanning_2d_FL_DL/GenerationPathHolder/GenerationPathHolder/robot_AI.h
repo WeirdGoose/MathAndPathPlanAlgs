@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 #include "Whole_map.h"
 #include "gen_pars.h"
 #include "fl/Headers.h"
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 350
-#define START_ROBOT_POS_Y 350
+#define START_ROBOT_POS_X 320
+#define START_ROBOT_POS_Y 320
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
 #define AIM_POS_X 150
@@ -66,12 +66,12 @@ public:
 	fl::OutputVariable* fl_outSpeed;
 	fl::RuleBlock* mamdani;
 	std::vector<sens_det_dist_> sens_math_lambdas;	// array of rate vectors for every n compare points  of 1 sensor line(or sensor point)
-	std::vector<triangle_term_> terms;
 	unsigned long path_mem_size = 1;
 	float delta_t;
 	obstacle_point aim;
 	obstacle_point position;
 	_angle_type orientation_angle;
+	rob_pop_type_ identificator;
 	obstacle_point orient_attractive;
 	obstacle_point orient_repulsive;
 	unsigned int rob_lines_num = LINES_NUMBER;
@@ -119,24 +119,24 @@ public:
 	{
 		this->position.x = pos.x;
 		this->position.y = pos.y;
-		cout << "robot_params:: rob position x, y is " << pos.x << ", " << pos.y << "\n";
+		cout << "robot_params:: rob " << this->identificator << " position x, y is " << pos.x << ", " << pos.y << "\n";
 		//set_direction_by_angle(angle);
 		this->sens_math_lambdas.resize(NUM_OF_SENS_CHK_STEPS);
 		// setting lambdas (there can be linear or another correlation)
 		for (int i = sens_math_lambdas.size() - 1; i >= 0; --i)
 		{
 			this->sens_math_lambdas[i] = (float)i/((float)LINES_RADIUS - (float)i);
-			cout << i << " sens_math_lambda " << sens_math_lambdas[i] << " \n";
+			//cout << i << " sens_math_lambda " << sens_math_lambdas[i] << " \n";
 		}
 		for (int8_t i = 0; i < LINES_NUMBER / 2 + 1; ++i)
 		{
 			this->sensor_points[i].angle_from_center = i * SENSOR_RAD_STEP;
-			cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";
+			//cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";
 		}
 		for (int8_t i = LINES_NUMBER / 2 + 1; i < LINES_NUMBER; ++i)
 		{
 			this->sensor_points[i].angle_from_center = ((LINES_NUMBER / 2) - i) * SENSOR_RAD_STEP;
-			cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";
+			//cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";
 		}
 	}
 	sensor_point * get_sensor_points()
@@ -145,7 +145,7 @@ public:
 	}
 };
 
-void init_logic(Whole_map &map, robot_params &rob_base);
+void init_logic(robot_params &rob_base, rob_pop_type_ identificator);
 void calc_orient_repulsive(	sensor_point *sensor_points_ptr,
 							obstacle_point &orient_repulsive,
 							_sensor_num_type rob_lines_num,
