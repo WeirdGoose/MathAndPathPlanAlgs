@@ -2,6 +2,8 @@
 #include "gen_pars.h"
 #include "manu_fuzzy_logic.h"
 #include "genetic_algh.h"
+#include "fl/Headers.h"
+
 
 uint8_t flag_one = 0;
 //	robot logic description
@@ -25,6 +27,20 @@ void init_logic(Whole_map &map, robot_params &rob_base)
 	rob_base.set_start_pos_and_dir(start_pos, START_ANGLE);
 	rob_base.terms.resize(SPEED_TERMS_NUM);
 	
+	rob_base.engine =		new fl::Engine;
+	rob_base.fl_speed =		new fl::InputVariable;
+	rob_base.fl_obs_angle = new fl::InputVariable;
+	rob_base.mSteer =		new fl::OutputVariable;
+	rob_base.fl_outSpeed =	new fl::OutputVariable;
+	rob_base.mamdani =		new fl::RuleBlock;
+
+	init_fuzzy(rob_base.engine, 
+		rob_base.fl_speed, 
+		rob_base.fl_obs_angle, 
+		rob_base.mSteer, 
+		rob_base.fl_outSpeed, 
+		rob_base.mamdani);
+	
 	cout << "|i \t|left board \t|peak \t|right board \t|\n";
 	for (unsigned i = 0; i < rob_base.terms.size(); ++i)
 	{
@@ -38,7 +54,28 @@ void init_logic(Whole_map &map, robot_params &rob_base)
 	rob_base.orient_repulsive.x = 0;
 }
 
+float sens_loc_angle_by_num(_sensor_num_type num)
+{
+	float angle;
+	if (num < LINES_NUMBER / 2 + 1)
+	{
+		angle = SENSOR_RAD_STEP * num;
+	}
+	else if (LINES_NUMBER / 2 + 1 <= num < LINES_NUMBER)
+	{
+		angle  = -SENSOR_RAD_STEP * (num - LINES_NUMBER / 2);
+	}
+	else {
+		cout << "sens_angle_by_num: wrong number!!!!\n";
+		return 0;
+	}
+	return angle*180/M_PI;
+}
 
+float orient_from_local_angle(float angle, float currGlobalAngle)
+{
+	return currGlobalAngle + angle*M_PI/180;
+}
 
 
 void calc_orient_repulsive(	sensor_point *sensor_points_ptr, 
@@ -65,6 +102,23 @@ void calc_orient_repulsive(	sensor_point *sensor_points_ptr,
 	}
 }
 
+void calc_orient_attractive(robot_params &rob_base)
+{
+	obstacle_point orient_attractive;
+	float normal;
+	float lambda_attr;
+	orient_attractive.y = rob_base.position.y - rob_base.aim.y;
+	orient_attractive.x = rob_base.position.x - rob_base.aim.x;
+	normal = sqrt(pow(orient_attractive.x, 2) + pow(orient_attractive.y, 2));
+	lambda_attr = sens_react_rad / (normal - sens_react_rad);
+	orient_attractive.y = (rob_base.position.y + lambda_attr * rob_base.aim.y) / (lambda_attr + 1);
+	orient_attractive.x = (rob_base.position.x + lambda_attr * rob_base.aim.x) / (lambda_attr + 1);
+
+	rob_base.orient_attractive.y = orient_attractive.y - rob_base.orient_repulsive.y;
+	rob_base.orient_attractive.x = orient_attractive.x - rob_base.orient_repulsive.x;
+	cout << "orient_attractive.x " << orient_attractive.x << " orient_attractive.y " << orient_attractive.y << "\n";
+	cout << "orient_repulsive.x " << rob_base.orient_repulsive.x << " orient_repulsive.y " << rob_base.orient_repulsive.y << "\n";
+}
 
 
 // setting direction and speed (with phase control logic and etc)
@@ -83,45 +137,58 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 	if (mode == _rotation_setting_)
 	{
 		sensor_point *sensor_points_ptr;
-		obstacle_point orient_attractive;
 		//sens_det_dist_ norm_scale = rob_base.sens_math_lambdas[sens_react_rad - 1];
 		sensor_points_ptr = rob_base.get_sensor_points();
-		float normal;
-		float lambda_attr;
 		calc_orient_repulsive(sensor_points_ptr, rob_base.orient_repulsive, rob_base.rob_lines_num, rob_base.position);
-
-		orient_attractive.y = rob_base.position.y - rob_base.aim.y;
-		orient_attractive.x = rob_base.position.x - rob_base.aim.x;
-		normal = sqrt(pow(orient_attractive.x, 2) + pow(orient_attractive.y, 2));
-		lambda_attr = sens_react_rad / (normal - sens_react_rad);
-		orient_attractive.y = (rob_base.position.y + lambda_attr * rob_base.aim.y) / (lambda_attr + 1);
-		orient_attractive.x = (rob_base.position.x + lambda_attr * rob_base.aim.x) / (lambda_attr + 1);
-
-		rob_base.orient_attractive.y = orient_attractive.y - rob_base.orient_repulsive.y;
-		rob_base.orient_attractive.x = orient_attractive.x - rob_base.orient_repulsive.x;
-		cout << "orient_attractive.x " << orient_attractive.x << " orient_attractive.y " << orient_attractive.y << "\n";
-		cout << "orient_repulsive.x " << rob_base.orient_repulsive.x << " orient_repulsive.y " << rob_base.orient_repulsive.y << "\n";
-
+		calc_orient_attractive(rob_base);
 		rob_base.set_direction(rob_base.orient_attractive);
 	}
-	else if(mode == _speed_setting_)
+	else if (mode == _fuzzy_set_)
 	{
 		sensor_point *sensor_points_ptr;
+		uint8_t num = 0;
+		float min_dist = sens_react_rad + 1;
 		sensor_points_ptr = rob_base.get_sensor_points();
-		_speed_type speed = rob_base.get_speed();
 
-		if (sensor_points_ptr[0].state == OBSTACLE_MAP_CHAR)
+		for (_sensor_num_type i = 0; i < rob_base.rob_lines_num; ++i)
 		{
-			speed = fuzzy_speed_set(MAX_SPEED, sensor_points_ptr[0].distant, LINES_RADIUS, rob_base.terms);
-			cout << "in slowing: speed - " << speed << "\n";
-			cout << "in slowing: dist to obs - " << sensor_points_ptr[0].distant << "\n";
-			if (speed <= 0)
+			if (sensor_points_ptr[i].state == OBSTACLE_MAP_CHAR
+				&& sensor_points_ptr[i].distant < sens_react_rad)
 			{
-				cout << "speed <= 0!!!\n";
-				speed = 0;
+				if (min_dist > sensor_points_ptr[i].distant)
+				{
+					min_dist = sensor_points_ptr[i].distant;
+					num = i;
+				}
 			}
 		}
-		rob_base.set_speed(speed);
+		if (min_dist != sens_react_rad + 1)
+		{
+			float angle_ctrl = sens_loc_angle_by_num(num);
+			rob_base.fl_speed->setValue(rob_base.get_speed());
+			rob_base.fl_obs_angle->setValue(angle_ctrl);
+			rob_base.engine->process();
+
+			cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
+
+			float out_glob_angle = orient_from_local_angle(rob_base.mSteer->getValue(), rob_base.orientation_angle);
+
+			cout << "in angle is " << angle_ctrl << " fl angle is "
+				<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
+
+			cout << "out angle is " << rob_base.orientation_angle << " fl angle is "
+				<< fl::Op::str(rob_base.mSteer->getValue()) << "\n";
+			rob_base.set_direction_by_angle(out_glob_angle);
+
+			rob_base.set_speed(rob_base.fl_outSpeed->getValue());
+		}
+		else
+		{
+			calc_orient_attractive(rob_base);
+			rob_base.set_direction(rob_base.orient_attractive);
+			rob_base.set_speed(MAX_SPEED);
+		}
+		
 	}
 	
 	return 0;

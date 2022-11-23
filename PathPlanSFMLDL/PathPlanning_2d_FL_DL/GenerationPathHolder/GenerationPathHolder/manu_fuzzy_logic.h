@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gen_pars.h"
+#include "fl/Headers.h"
 
 #define SPEED_TERMS_NUM 3
 #define ANGLE_TERMS_NUM 3
@@ -10,19 +11,9 @@
 typedef float _speed_space;
 
 
-_speed_type speed_set_by_obs(	_speed_type max_speed,
-								sens_det_dist_ dist_to_obs,
-								sens_det_dist_ max_dist,
-								_angle_type angle);
-_speed_type speed_drop_by_obs(_speed_type max_speed,
-								sens_det_dist_ dist_to_obs,
-								sens_det_dist_ max_dist,
-								_angle_type angle);
-_speed_type fuzzy_speed_set(_speed_type max_speed,
-							sens_det_dist_ actDistToObs,
-							sens_det_dist_ maxDistToObs,
-							std::vector<triangle_term_> terms);
-_angle_type fuzzy_angle_set(sensor_point *sensor_points_ptr,
-							obstacle_point &orient_repulsive,
-							_sensor_num_type rob_lines_num,
-							obstacle_point position);
+void init_fuzzy(fl::Engine* engine,
+	fl::InputVariable* speed,
+	fl::InputVariable* obs_angle,
+	fl::OutputVariable* mSteer,
+	fl::OutputVariable* outSpeed,
+	fl::RuleBlock* mamdani);
