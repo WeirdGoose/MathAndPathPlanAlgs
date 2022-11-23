@@ -234,6 +234,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manu_fuzzy_logic.cpp" />
     <ClCompile Include="robot_AI.cpp" />
+    <ClCompile Include="genetic_algs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="genetic_algh.h" />

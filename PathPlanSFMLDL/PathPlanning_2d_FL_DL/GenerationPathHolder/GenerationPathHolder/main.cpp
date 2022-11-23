@@ -40,10 +40,14 @@ int main()
 	//Create
 
 	set_map(map);
+
 	init_logic(map, rob_base);
+
+
 	sim1.start_simulation();
 
 	std::thread robot_ai(robot_logic, std::ref(map), std::ref(rob_base), std::ref(sim1));
+
 	//robot_ai.join();
 	std::thread graphics(scene_movment, std::ref(map), std::ref(rob_base), std::ref(sim1));
 	//graphics.join();
@@ -186,6 +190,8 @@ void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
 	}
 	sim.off_simulation();
 }
+
+
 // checked is there are obstacle by compare points of every sensor line with obstacle coordinates
 void check_sensors(Whole_map &map, robot_params &rob_base)
 {

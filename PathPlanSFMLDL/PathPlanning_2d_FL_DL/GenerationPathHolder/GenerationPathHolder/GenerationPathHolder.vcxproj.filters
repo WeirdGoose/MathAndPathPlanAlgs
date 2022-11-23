@@ -333,6 +333,9 @@
     <ClCompile Include="C:\UtilsAndLs\fuzzylite-6.0\fuzzylite\src\variable\Variable.cpp">
       <Filter>Source Files\fuzzy_srcs</Filter>
     </ClCompile>
+    <ClCompile Include="genetic_algs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Whole_map.h">
