@@ -9,6 +9,21 @@
 
 // header of the main programm
 
+#define DRAW_AFTER_SIM_MODE 1
+
+#if DRAW_AFTER_SIM_MODE 
+#define SIGNAL_TO_DRAW(SYNCH)		SYNCH.notify_one()
+#define WAIT_FOR_DRIVE(SYNCH, LOCK)	SYNCH.wait(LOCK)
+#define SIGNAL_TO_DRIVE(SYNCH)		do{}while(0)
+#define WAIT_FOR_DRAW(SYNCH, LOCK)	do{}while(0)
+
+#else
+#define SIGNAL_TO_DRIVE(SYNCH)		SYNCH.notify_one();
+#define WAIT_FOR_DRAW(SYNCH, LOCK)	SYNCH.wait(LOCK)
+#define SIGNAL_TO_DRAW(SYNCH)		do{}while(0)
+#define WAIT_FOR_DRIVE(SYNCH, LOCK)	do{}while(0)
+
+#endif
 
 
 class simulation {
@@ -26,12 +41,16 @@ public:
 };
 
 void set_map(Whole_map &map);
-void draw_map(	sf::RenderWindow &win,
-				Whole_map &map,
-				robot_params &rob_base,
-				std::vector<sf::CircleShape> &obs_space,
-				std::vector<sf::CircleShape> &sens_line_space,
-				std::vector<sf::CircleShape> &path_space);
+
+void draw_map(sf::RenderWindow &win,
+	Whole_map &map,
+	std::vector<sf::CircleShape> &obs_space);
+
+void draw_other(sf::RenderWindow &win,
+	Whole_map &map,
+	robot_params &rob_base,
+	std::vector<sf::CircleShape> &sens_line_space,
+	std::vector<map_point> &path_space);
 
 void start_position_rules(std::vector<obstacle_point> &robs_positions);
 

@@ -11,7 +11,7 @@
 #define ROB_ERROR_SPEED 0.2
 #define ROB_ERROR_ROTATION 0.000112
 
-#define GEN_POPULATION 5
+#define GEN_POPULATION 20
 
 #define MAX_MAP_SIZE_X 500
 #define MAX_MAP_SIZE_Y 500
@@ -20,7 +20,8 @@ class Whole_map
 {
 	std::vector<Column> map_points;
 	//std::vector<Column> sensor_points;
-	
+	int8_t map_restriction = OBSTACLE_MAP_CHAR;
+	int8_t& map_res = map_restriction;
 	unsigned long size;
 	unsigned int width;
 	unsigned int height;
@@ -58,7 +59,11 @@ public:
 	
 	int8_t& at(unsigned int i, unsigned int j)
 	{
-		return map_points[i][j];
+		if (i >= MAX_MAP_SIZE_X || j > MAX_MAP_SIZE_Y
+			|| i <= 0 || j <= 0)
+			return map_res;
+		else
+			return map_points[i][j];
 	}
 	unsigned long get(string parametr) 
 	{

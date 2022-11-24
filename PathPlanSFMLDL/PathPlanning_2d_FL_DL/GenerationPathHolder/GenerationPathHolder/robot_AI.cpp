@@ -3,7 +3,7 @@
 #include "manu_fuzzy_logic.h"
 #include "genetic_algh.h"
 #include "fl/Headers.h"
-
+#include "genetic_algh.h"
 
 uint8_t flag_one = 0;
 //	robot logic description
@@ -11,6 +11,36 @@ uint8_t flag_one = 0;
 const float pos_sc_fact = 4;
 const float rob_rad = 1;
 const int sens_react_rad = 29;
+
+// для ген алгоритма (считается, что позиция уже выставленна)
+void init_logic(robot_params &rob_base, rob_pop_type_ identificator, genes_t &gen_gen)
+{
+	rob_base.delta_t = START_DELTA_T;
+
+	rob_base.aim.x = AIM_POS_X;
+	rob_base.aim.y = AIM_POS_Y;
+	rob_base.set_speed(START_SPEED);
+	rob_base.set_direction(rob_base.aim);
+
+	rob_base.identificator = identificator;
+
+	rob_base.engine = new fl::Engine;
+	rob_base.fl_speed = new fl::InputVariable;
+	rob_base.fl_obs_angle = new fl::InputVariable;
+	rob_base.mSteer = new fl::OutputVariable;
+	rob_base.fl_outSpeed = new fl::OutputVariable;
+	rob_base.mamdani = new fl::RuleBlock;
+
+	init_fuzzy(rob_base.engine,
+		rob_base.fl_speed,
+		rob_base.fl_obs_angle,
+		rob_base.mSteer,
+		rob_base.fl_outSpeed,
+		rob_base.mamdani);
+
+	rob_base.orient_repulsive.y = 0;
+	rob_base.orient_repulsive.x = 0;
+}
 
 // для ген алгоритма (считается, что позиция уже выставленна)
 void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
@@ -104,8 +134,8 @@ void calc_orient_attractive(robot_params &rob_base)
 
 	rob_base.orient_attractive.y = orient_attractive.y - rob_base.orient_repulsive.y;
 	rob_base.orient_attractive.x = orient_attractive.x - rob_base.orient_repulsive.x;
-	cout << "orient_attractive.x " << orient_attractive.x << " orient_attractive.y " << orient_attractive.y << "\n";
-	cout << "orient_repulsive.x " << rob_base.orient_repulsive.x << " orient_repulsive.y " << rob_base.orient_repulsive.y << "\n";
+	//cout << "orient_attractive.x " << orient_attractive.x << " orient_attractive.y " << orient_attractive.y << "\n";
+	//cout << "orient_repulsive.x " << rob_base.orient_repulsive.x << " orient_repulsive.y " << rob_base.orient_repulsive.y << "\n";
 }
 
 
@@ -157,15 +187,15 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 			rob_base.fl_obs_angle->setValue(angle_ctrl);
 			rob_base.engine->process();
 
-			cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
+			//cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
 
 			float out_glob_angle = orient_from_local_angle(rob_base.mSteer->getValue(), rob_base.orientation_angle);
 
-			cout << "in angle is " << angle_ctrl << " fl angle is "
-				<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
-
-			cout << "out angle is " << rob_base.orientation_angle << " fl angle is "
-				<< fl::Op::str(rob_base.mSteer->getValue()) << "\n";
+			//cout << "in angle is " << angle_ctrl << " fl angle is "
+			//	<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
+			//
+			//cout << "out angle is " << rob_base.orientation_angle << " fl angle is "
+			//	<< fl::Op::str(rob_base.mSteer->getValue()) << "\n";
 			rob_base.set_direction_by_angle(out_glob_angle);
 
 			rob_base.set_speed(rob_base.fl_outSpeed->getValue());

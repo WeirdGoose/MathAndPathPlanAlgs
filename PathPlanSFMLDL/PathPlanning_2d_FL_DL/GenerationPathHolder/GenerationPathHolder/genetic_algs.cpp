@@ -4,6 +4,11 @@
 #include "Whole_map.h"
 #include "MapDraw.h"
 
+void genetic_set_pars(variables_set &genes)
+{
+
+}
+
 void genetic_init(std::vector<robot_params>& rob_gen)
 {
 	rob_gen.resize(GEN_POPULATION);

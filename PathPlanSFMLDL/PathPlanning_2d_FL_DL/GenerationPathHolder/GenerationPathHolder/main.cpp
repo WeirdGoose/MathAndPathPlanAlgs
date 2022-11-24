@@ -13,14 +13,9 @@
 
 HANDLE sleepTimerMutex;
 std::mutex synchMutex;
+std::mutex synchMutex2;
 std::condition_variable synchCndVar;
-/*
-void sleep_accurate(uint32_t msec)
-{
-	__int64 qwDueTime = msec * 
-	SetWaitableTimer();
-}
-*/
+
 
 // TODO
 /*
@@ -30,45 +25,43 @@ void sleep_accurate(uint32_t msec)
 	добавить изменение скорости и перемещения в 0 при столкновении с препятствием
 */
 
+std::chrono::steady_clock::time_point time_begin;
+std::chrono::steady_clock::time_point time_end;
 
 int main() 
 {
 	unsigned int map_width = MAX_MAP_SIZE_X;
 	unsigned int map_heigth = MAX_MAP_SIZE_Y;
 	simulation sim1;
-	//robot_params rob_base;
 	std::vector<robot_params> rob_gen;
 	rob_gen.resize(GEN_POPULATION);
 
 	Whole_map map(map_width, map_heigth); 
 	//Create
-	genetic_init(rob_gen);
+	
 	set_map(map);
 
+	genetic_init(rob_gen);
 	genetic_start(rob_gen, map, 0);
 
 	sim1.start_simulation();
 	std::vector<std::thread*> rob_gen_ai;
 	rob_gen_ai.resize(GEN_POPULATION);
+	time_begin = std::chrono::steady_clock::now();
+
 	for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
 	{
 		std::thread * new_thread = new std::thread(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
 		rob_gen_ai.push_back(new_thread);
 	}
 
-	//robot_ai.join();
 	std::thread graphics(scene_movment, std::ref(map), std::ref(rob_gen), std::ref(sim1));
-	//graphics.join();
 	
 	while (sim1.simulation_state()) 
-	{
 		Sleep(100);
-	}
 
 	for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
-	{
 		delete rob_gen_ai.at(rob_num);
-	}
 
 	char c;
 	cin >> c;
@@ -77,139 +70,28 @@ int main()
 
 void start_position_rules(std::vector<obstacle_point> &robs_positions)
 {
-	rob_pop_type_ idx=0;
+	rob_pop_type_ idx = 0;
 	robs_positions.resize(GEN_POPULATION);
+	uint8_t diff_x = 2;
+	uint8_t diff_y = 0;
 	for (auto &position: robs_positions)
 	{
-		position.x = START_ROBOT_POS_X + (idx++)*5;
-		position.y = START_ROBOT_POS_Y;
+		if (position.x + (idx)*diff_x < MAX_MAP_SIZE_X)
+			position.x = START_ROBOT_POS_X + (idx)*diff_x;
+		else if (position.x - (idx)*diff_x > 0)
+			position.x = START_ROBOT_POS_X - (idx)*diff_x;
+		else
+			throw std::overflow_error("too big number of robots for x bias\n");
+
+		if (position.y + (idx)*diff_y < MAX_MAP_SIZE_Y)
+			position.y = START_ROBOT_POS_Y + (idx)*diff_y;
+		else if (position.y - (idx)*diff_y > 0)
+			position.y = START_ROBOT_POS_Y - (idx)*diff_y;
+		else
+			throw std::overflow_error("too big number of robots for y bias\n");
+		idx++;
+		cout << "rob " << idx << " position x  " << position.x << " position y " << position.y << "\n";
 	}
-}
-
-void set_map(Whole_map &map) 
-{
-	obstacle_point quadro1;
-	obstacle_point quadro2;
-	quadro1.x = 180;
-	quadro1.y = 210;
-	quadro2.x = 290;
-	quadro2.y = 260;
-	map.create_quadro_obstacle(50, 50, quadro1, 3);
-	map.create_quadro_obstacle(50, 50, quadro2, 3);
-
-	map.aim.x = AIM_POS_X;
-	map.aim.y = AIM_POS_Y;
-
-	start_position_rules(map.robs_positions);
-}
-
-void draw_map(	sf::RenderWindow &win, 
-				Whole_map &map, 
-				std::vector<sf::CircleShape> &obs_space)
-{
-	sf::CircleShape Circle1(0.5);
-	Circle1.setFillColor(sf::Color::Green);
-
-	for (unsigned int i = 0; i < map.short_obs.size(); ++i)
-	{
-		Circle1.setPosition(map.short_obs.at(i).x, map.short_obs.at(i).y);
-		win.draw(Circle1);
-	}
-}
-
-void draw_other(sf::RenderWindow &win,
-				Whole_map &map,
-				robot_params &rob_base,
-				std::vector<sf::CircleShape> &sens_line_space,
-				std::vector<map_point> &path_space)
-{
-	sf::CircleShape Circle_path(0.5);
-	sf::CircleShape Circle_rob(0.5);
-	sf::CircleShape Circle_aim(3.f);
-	sf::CircleShape Circle_sens_line(1.f);
-	sf::CircleShape Circle_orient(1.f);
-	Circle_path.setFillColor(sf::Color::Red);
-	unsigned int k = 0;
-
-	//catch position trough the wibe (proceedeng float to int)
-	for (unsigned int i = 0; i < path_space.size(); ++i)
-	{
-		Circle_path.setPosition(path_space.at(i).x, path_space.at(i).y);
-		win.draw(Circle_path);
-		k++;
-	}
-
-
-	// Draw current robot position
-	Circle_rob.setFillColor(sf::Color::Red);
-	Circle_rob.setPosition(rob_base.position.x, rob_base.position.y);
-	win.draw(Circle_rob);
-
-	// Draw aim (it is abscent in map space)
-	Circle_aim.setFillColor(sf::Color::Blue);
-	Circle_aim.setPosition(rob_base.aim.x, rob_base.aim.y);
-	win.draw(Circle_aim);
-
-	// Draw sensor lines (there are abscent on map)
-	Circle_sens_line.setFillColor(sf::Color::White);
-
-	for (unsigned int i = 0; i < rob_base.rob_lines_num; ++i)
-	{
-		Circle_sens_line.setPosition(rob_base.at(i).x, rob_base.at(i).y);
-		sens_line_space[i] = Circle_sens_line;
-		win.draw(Circle_sens_line);
-	}
-	obstacle_point orient = rob_base.get_orientation();
-	Circle_orient.setFillColor(sf::Color::Red);
-	Circle_orient.setPosition(orient.x, orient.y);
-	win.draw(Circle_orient);
-
-}
-
-void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulation &sim)
-{
-
-	sf::RenderWindow window(sf::VideoMode(map.get("width"), map.get("height")), "SFML works!");
-	std::vector<sf::CircleShape> Obs;
-	std::vector<map_point> Path;
-	std::vector<sf::CircleShape> lines;
-	unsigned long size = map.obstacles_weight;
-	map_point robot_pos;
-
-	Obs.resize(size);
-	//Path.resize(rob_gen.at(0).path_mem_size);
-	lines.resize(LINES_NUMBER);
-
-	while (window.isOpen())
-	{
-
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		window.clear();
-		draw_map(window, map, Obs);
-		for (auto& rob_base : rob_gen)
-		{
-			robot_pos.x = rob_base.position.x;
-			robot_pos.y = rob_base.position.y;
-			if (map.at(robot_pos.x, robot_pos.y) != ROBOT_PATH_MAP_CHAR) 
-			{
-				// save to map last position
-				Path.push_back(robot_pos);
-				map.at(robot_pos.x, robot_pos.y) = ROBOT_PATH_MAP_CHAR;
-			}
-		}
-		for (auto& rob_base : rob_gen)
-			draw_other(window, map, rob_base, lines, Path);
-		window.display();
-		synchCndVar.notify_one();
-		//Sleep(1);
-	}
-	sim.off_simulation();
 }
 
 
@@ -238,8 +120,8 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 					break;
 				}
 			}
-			else
-				cout << "WARNING WRONG SENSORS CALCULATE!!!\n";
+			//else
+				//cout << "WARNING WRONG SENSORS CALCULATE!!!\n";
 			
 		}
 	}
@@ -278,9 +160,7 @@ void make_one_step(Whole_map &map, robot_params &rob_base)
 	map.orientation_angle = rob_base.orientation_angle + ROB_ERROR_ROTATION;
 	rob_pop_type_ identificator = rob_base.identificator;
 	if (map.at(map.robs_positions.at(identificator).x, map.robs_positions.at(identificator).y) == OBSTACLE_MAP_CHAR)
-	{
 		real_speed = 0;
-	}
 	map.robs_positions.at(identificator).x = rob_base.position.x + real_speed * cos(map.orientation_angle) * rob_base.delta_t;
 	map.robs_positions.at(identificator).y = rob_base.position.y + real_speed * sin(map.orientation_angle) * rob_base.delta_t;
 	rob_base.position.x = map.robs_positions.at(identificator).x;
@@ -298,15 +178,22 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	sensor_points_ptr = rob_base.get_sensor_points();
 	while (sim.simulation_state()) 
 	{
-		synchCndVar.wait(uLock);
+		//synchCndVar.wait(uLock);
+		WAIT_FOR_DRAW(synchCndVar, uLock);
 		if (exit_ctrl)
 		{
-			delete rob_base.engine;
-			delete rob_base.fl_speed;
-			delete rob_base.fl_obs_angle;
-			delete rob_base.mSteer;
-			delete rob_base.fl_outSpeed;
-			delete rob_base.mamdani;
+			time_end = std::chrono::steady_clock::now();
+			std::cout << (uint32_t)rob_base.identificator << " Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_begin).count() << "\t[us]" << std::endl;
+			std::cout << (uint32_t)rob_base.identificator << " Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_begin).count() << "\t[ns]" << std::endl;
+
+			//synchCndVar.notify_one();
+			SIGNAL_TO_DRAW(synchCndVar);
+			//delete rob_base.engine;
+			//delete rob_base.fl_speed;
+			//delete rob_base.fl_obs_angle;
+			//delete rob_base.mSteer;
+			//delete rob_base.fl_outSpeed;
+			//delete rob_base.mamdani;
 			return;
 		}
 		check_sensors(map, rob_base);
@@ -315,7 +202,7 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
 		
 		check_sensors(map, rob_base);
-		exit_ctrl = robot_active_cyc(map, rob_base, _speed_setting_);
+		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 
 		make_one_step(map, rob_base);
 		//sensor_points_ptr = rob_base.get_sensor_points();
