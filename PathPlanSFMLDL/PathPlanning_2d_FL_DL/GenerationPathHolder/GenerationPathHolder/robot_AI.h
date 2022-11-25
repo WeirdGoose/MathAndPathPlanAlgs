@@ -145,6 +145,7 @@ public:
 	}
 };
 
+void init_logic(robot_params &rob_base, rob_pop_type_ identificator, variables_set &var_set);
 void init_logic(robot_params &rob_base, rob_pop_type_ identificator);
 void calc_orient_repulsive(	sensor_point *sensor_points_ptr,
 							obstacle_point &orient_repulsive,

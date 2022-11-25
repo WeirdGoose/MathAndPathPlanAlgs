@@ -6,7 +6,6 @@
 void init_input_obs_terms(obs_desition_space &dsv)
 {
 
-#ifndef MULTIAG_ALG
 	std::vector<float> left_pars	{-90, -80, -70, -60};
 	std::vector<float> leftp_pars	{-70, -50, -30, -5};
 	std::vector<float> front_pars	{-10, -5, 5, 10};
@@ -18,23 +17,17 @@ void init_input_obs_terms(obs_desition_space &dsv)
 	dsv.front_pars = front_pars;
 	dsv.rightp_pars = rightp_pars;
 	dsv.right_pars = right_pars;
-#else
 
-#endif
 }
 
 void init_input_speed_terms(speed_desition_space &dsv)
 {
-#ifndef MULTIAG_ALG
 	std::vector<float> low_pars		{0, 0.5, 1, 1.5};
 	std::vector<float> middle_pars	{1, 2, 2.5, 3};
 	std::vector<float> high_pars	{2.5, 4, 5, 7};
 	dsv.low_pars = low_pars;
 	dsv.middle_pars = middle_pars;
 	dsv.high_pars = high_pars;
-#else
-
-#endif
 }
 
 void init_output_obs_terms(obs_desition_space &dsv)

@@ -37,3 +37,14 @@ void init_fuzzy(fl::Engine* engine,
 	fl::OutputVariable* mSteer,
 	fl::OutputVariable* outSpeed,
 	fl::RuleBlock* mamdani);
+
+void init_fuzzy_ext(fl::Engine* engine,
+	fl::InputVariable* speed,
+	fl::InputVariable* obs_angle,
+	fl::OutputVariable* mSteer,
+	fl::OutputVariable* outSpeed,
+	fl::RuleBlock* mamdani,
+	variables_set	&var_s);
+
+void init_input_speed_terms(speed_desition_space &dsv);
+void init_output_speed_terms(speed_desition_space &dsv);

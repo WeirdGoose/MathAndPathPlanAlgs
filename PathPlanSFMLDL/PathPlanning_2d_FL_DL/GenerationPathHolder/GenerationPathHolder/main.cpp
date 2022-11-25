@@ -33,6 +33,7 @@ int main()
 	unsigned int map_width = MAX_MAP_SIZE_X;
 	unsigned int map_heigth = MAX_MAP_SIZE_Y;
 	simulation sim1;
+	generation_type anoth_gen;
 	std::vector<robot_params> rob_gen;
 	rob_gen.resize(GEN_POPULATION);
 
@@ -42,7 +43,7 @@ int main()
 	set_map(map);
 
 	genetic_init(rob_gen);
-	genetic_start(rob_gen, map, 0);
+	genetic_start(rob_gen, map, anoth_gen);
 
 	sim1.start_simulation();
 	std::vector<std::thread*> rob_gen_ai;
