@@ -1,6 +1,19 @@
-#include "manu_fuzzy_logic.h"
+﻿#include "manu_fuzzy_logic.h"
 #include "fl/Headers.h"
 #include "robot_AI.h"
+
+
+// соответствие номера элементов векторов вершинам трапеции
+// ^
+// |
+//1|			___________________
+// |		  /						\
+// |		 /						 \
+// |		/						  \
+// |	   /						   \
+// |	  /								\
+//0|____|/_____|___________________|_____\_________
+//		0	   1				   2	 3
 
 
 void init_input_obs_terms(obs_desition_space &dsv)

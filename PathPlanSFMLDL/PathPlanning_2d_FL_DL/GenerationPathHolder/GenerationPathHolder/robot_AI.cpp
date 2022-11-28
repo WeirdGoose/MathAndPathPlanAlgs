@@ -67,7 +67,7 @@ void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
 		rob_base.mSteer,
 		rob_base.fl_outSpeed,
 		rob_base.mamdani);
-
+	rob_base.steps_number = 0;
 	rob_base.orient_repulsive.y = 0;
 	rob_base.orient_repulsive.x = 0;
 }

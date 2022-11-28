@@ -70,6 +70,7 @@ public:
 	float delta_t;
 	obstacle_point aim;
 	obstacle_point position;
+	long long steps_number;
 	_angle_type orientation_angle;
 	rob_pop_type_ identificator;
 	obstacle_point orient_attractive;

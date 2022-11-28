@@ -171,12 +171,24 @@ void make_one_step(Whole_map &map, robot_params &rob_base)
 	rob_base.set_speed(real_speed);
 }
 
+void signal_to_draw_if_i_last(){
+	static uint32_t ended_robots = 0;
+	if (ended_robots == GEN_POPULATION - 1)
+	{
+		SIGNAL_TO_DRAW(synchCndVar);
+		ended_robots = 0;
+	}
+	else 
+		ended_robots++;
+}
+
 void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 {
 	std::unique_lock<std::mutex> uLock(synchMutex);
 	sensor_point *sensor_points_ptr; 
 	BOOL exit_ctrl = 0;
 	sensor_points_ptr = rob_base.get_sensor_points();
+
 	while (sim.simulation_state()) 
 	{
 		//synchCndVar.wait(uLock);
@@ -187,14 +199,7 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 			std::cout << (uint32_t)rob_base.identificator << " Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_begin).count() << "\t[us]" << std::endl;
 			std::cout << (uint32_t)rob_base.identificator << " Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_begin).count() << "\t[ns]" << std::endl;
 
-			//synchCndVar.notify_one();
-			SIGNAL_TO_DRAW(synchCndVar);
-			//delete rob_base.engine;
-			//delete rob_base.fl_speed;
-			//delete rob_base.fl_obs_angle;
-			//delete rob_base.mSteer;
-			//delete rob_base.fl_outSpeed;
-			//delete rob_base.mamdani;
+			signal_to_draw_if_i_last();
 			return;
 		}
 		check_sensors(map, rob_base);
@@ -206,6 +211,7 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 
 		make_one_step(map, rob_base);
+		rob_base.steps_number++;
 		//sensor_points_ptr = rob_base.get_sensor_points();
 		//direct_sensors(sensor_points_ptr, map.orientation_angle, map.rob_position);
 	}
