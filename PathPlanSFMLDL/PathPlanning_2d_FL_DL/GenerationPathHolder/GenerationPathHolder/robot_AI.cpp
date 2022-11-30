@@ -116,8 +116,6 @@ void calc_orient_attractive(robot_params &rob_base)
 
 	rob_base.orient_attractive.y = orient_attractive.y - rob_base.orient_repulsive.y;
 	rob_base.orient_attractive.x = orient_attractive.x - rob_base.orient_repulsive.x;
-	cout << "orient_attractive.x " << orient_attractive.x << " orient_attractive.y " << orient_attractive.y << "\n";
-	cout << "orient_repulsive.x " << rob_base.orient_repulsive.x << " orient_repulsive.y " << rob_base.orient_repulsive.y << "\n";
 }
 
 

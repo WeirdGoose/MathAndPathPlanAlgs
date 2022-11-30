@@ -5,12 +5,12 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 350
-#define START_ROBOT_POS_Y 350
+#define START_ROBOT_POS_X 150
+#define START_ROBOT_POS_Y 150
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
-#define AIM_POS_X 150
-#define AIM_POS_Y 150
+#define AIM_POS_X 350
+#define AIM_POS_Y 350
 #define START_ANGLE 0
 #define START_DELTA_T 0.5		// seems to be float
 #define MAX_SPEED	10.0

@@ -241,12 +241,28 @@ void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_poi
 // moves through the map, depending on speed, orientation and delta t
 void make_one_step(Whole_map &map, robot_params &rob_base)
 {
+	const _angle_type max_rotation_ability = 0.1*M_PI;
 	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
-	map.orientation_angle = rob_base.orientation_angle + ROB_ERROR_ROTATION;
+	_angle_type rotation_strength;
+	_angle_type prev_curr_rot_diff = abs(map.orientation_angle - rob_base.orientation_angle);
+	cout << "cur angle " << map.orientation_angle << " req angle " << rob_base.orientation_angle << endl;
+	// angles range should be from 0 to 2*M_PI
+	if (prev_curr_rot_diff > max_rotation_ability)
+		if(prev_curr_rot_diff < M_PI)
+			map.orientation_angle = map.orientation_angle + max_rotation_ability * (rob_base.orientation_angle - map.orientation_angle) / prev_curr_rot_diff + ROB_ERROR_ROTATION;
+		else
+			map.orientation_angle = map.orientation_angle - max_rotation_ability * (rob_base.orientation_angle - map.orientation_angle) / prev_curr_rot_diff + ROB_ERROR_ROTATION;
+	else
+		map.orientation_angle = rob_base.orientation_angle + ROB_ERROR_ROTATION;
+	// angle normalization
+	if (map.orientation_angle > 2*M_PI)
+		map.orientation_angle = map.orientation_angle - 2*M_PI;
+	else if (map.orientation_angle < 0)
+		map.orientation_angle = 2*M_PI + map.orientation_angle;
+
 	if (map.at(map.rob_position.x, map.rob_position.y) == OBSTACLE_MAP_CHAR)
-	{
 		real_speed = 0;
-	}
+
 	map.rob_position.x = rob_base.position.x + real_speed * cos(map.orientation_angle) * rob_base.delta_t;
 	map.rob_position.y = rob_base.position.y + real_speed * sin(map.orientation_angle) * rob_base.delta_t;
 	rob_base.position.x = map.rob_position.x;
@@ -266,26 +282,12 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	{
 		synchCndVar.wait(uLock);
 		if (exit_ctrl)
-		{
-			delete rob_base.engine;
-			delete rob_base.fl_speed;
-			delete rob_base.fl_obs_angle;
-			delete rob_base.mSteer;
-			delete rob_base.fl_outSpeed;
-			delete rob_base.mamdani;
-
 			return;
-		}
 		check_sensors(map, rob_base);
 		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 		sensor_points_ptr = rob_base.get_sensor_points();
-		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
-		
-		check_sensors(map, rob_base);
-		exit_ctrl = robot_active_cyc(map, rob_base, _speed_setting_);
 
 		make_one_step(map, rob_base);
-		//sensor_points_ptr = rob_base.get_sensor_points();
-		//direct_sensors(sensor_points_ptr, map.orientation_angle, map.rob_position);
+		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
 	}
 }
