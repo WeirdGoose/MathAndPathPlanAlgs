@@ -135,12 +135,6 @@ void init_fuzzy(fl::Engine* engine,
 	obs_desition_space oodsv;	// output obstacle desition vector
 	speed_desition_space osdsv; // output speed desition vector
 
-	//engine		= new fl::Engine;
-	//speed		= new fl::InputVariable;
-	//obs_angle	= new fl::InputVariable;
-	//mSteer		= new fl::OutputVariable;
-	//outSpeed	= new fl::OutputVariable;
-	//mamdani		= new fl::RuleBlock;
 
 	engine->setName("ObstacleAvoidance");
 	engine->setDescription("");

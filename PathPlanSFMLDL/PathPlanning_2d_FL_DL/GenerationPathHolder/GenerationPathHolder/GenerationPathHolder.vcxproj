@@ -234,9 +234,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manu_fuzzy_logic.cpp" />
     <ClCompile Include="robot_AI.cpp" />
+    <ClCompile Include="MapDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="genetic_algh.h" />
     <ClInclude Include="gen_pars.h" />
     <ClInclude Include="manu_fuzzy_logic.h" />
     <ClInclude Include="robot_AI.h" />

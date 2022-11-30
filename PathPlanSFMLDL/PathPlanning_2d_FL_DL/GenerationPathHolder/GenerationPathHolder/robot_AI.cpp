@@ -1,7 +1,6 @@
 #include "robot_Ai.h"
 #include "gen_pars.h"
 #include "manu_fuzzy_logic.h"
-#include "genetic_algh.h"
 #include "fl/Headers.h"
 
 

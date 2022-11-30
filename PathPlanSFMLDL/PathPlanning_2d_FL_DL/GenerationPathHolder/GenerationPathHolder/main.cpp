@@ -12,6 +12,7 @@
 
 HANDLE sleepTimerMutex;
 std::mutex synchMutex;
+std::mutex synchMutex2;
 std::condition_variable synchCndVar;
 /*
 void sleep_accurate(uint32_t msec)
@@ -57,135 +58,6 @@ int main()
 	return 0;
 }
 
-void set_map(Whole_map &map) 
-{
-	obstacle_point quadro1;
-	obstacle_point quadro2;
-	quadro1.x = 180;
-	quadro1.y = 210;
-	quadro2.x = 290;
-	quadro2.y = 260;
-	map.create_quadro_obstacle(50, 50, quadro1, 3);
-	map.create_quadro_obstacle(50, 50, quadro2, 3);
-
-	map.aim.x = AIM_POS_X;
-	map.aim.y = AIM_POS_Y;
-	map.rob_position.x = START_ROBOT_POS_X;
-	map.rob_position.y = START_ROBOT_POS_Y;
-
-
-
-}
-
-void draw_map(	sf::RenderWindow &win, 
-				Whole_map &map, 
-				robot_params &rob_base,  
-				std::vector<sf::CircleShape> &obs_space,
-				std::vector<sf::CircleShape> &sens_line_space,
-				std::vector<sf::CircleShape> &path_space	)
-{
-	sf::CircleShape Circle1(0.5);
-	sf::CircleShape Circle_path(0.5);
-	sf::CircleShape Circle_rob(0.5);
-	sf::CircleShape Circle_aim(3.f);
-	sf::CircleShape Circle_sens_line(1.f);
-	sf::CircleShape Circle_orient(1.f);
-
-	unsigned int k = 0;
-	Circle1.setFillColor(sf::Color::Green);
-	Circle_path.setFillColor(sf::Color::Red);
-
-	for (unsigned int i = 0; i < map.get("width"); ++i)
-	{
-		for (unsigned int j = 0; j < map.get("height"); ++j)
-		{
-
-			if (map.at(i, j) == OBSTACLE_MAP_CHAR)
-			{
-				Circle1.setPosition((float)i, (float)j);
-				obs_space[i] = Circle1;
-				win.draw(obs_space[i]);
-			}
-			else if (map.at(i, j) == ROBOT_PATH_MAP_CHAR)
-			{
-				//cout << "cyc path draw " << k << "i, j " << i << ", " << j << "\n";
-				Circle_path.setPosition((float)i, (float)j);
-				path_space[k] = Circle_path;
-				win.draw(path_space[k]);
-				k++;
-			}
-			
-		}
-	}
-	
-	// catch position trough the wibe (proceedeng float to int)
-	
-	// Draw current robot position
-	Circle_rob.setFillColor(sf::Color::Red);
-	Circle_rob.setPosition(rob_base.position.x, rob_base.position.y); 
-	win.draw(Circle_rob);
-
-	// Draw aim (it is abscent in map space)
-	Circle_aim.setFillColor(sf::Color::Blue);
-	Circle_aim.setPosition(rob_base.aim.x, rob_base.aim.y);
-	win.draw(Circle_aim);
-
-	// Draw sensor lines (there are abscent on map)
-	Circle_sens_line.setFillColor(sf::Color::White);
-
-	for (unsigned int i = 0; i < rob_base.rob_lines_num; ++i)
-	{
-		Circle_sens_line.setPosition(rob_base.at(i).x, rob_base.at(i).y);
-		sens_line_space[i] = Circle_sens_line;
-		win.draw(Circle_sens_line);
-	}
-	obstacle_point orient = rob_base.get_orientation();
-	Circle_orient.setFillColor(sf::Color::Red);
-	Circle_orient.setPosition(orient.x, orient.y);
-	win.draw(Circle_orient);
-
-}
-
-void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
-{
-
-	sf::RenderWindow window(sf::VideoMode(map.get("width"), map.get("height")), "SFML works!");
-	std::vector<sf::CircleShape> Obs;
-	std::vector<sf::CircleShape> Path;
-	std::vector<sf::CircleShape> lines;
-	unsigned long size = map.obstacles_weight;
-	map_point robot_pos;
-
-	Obs.resize(size);
-	Path.resize(rob_base.path_mem_size);
-	lines.resize(rob_base.rob_lines_num);
-
-	while (window.isOpen())
-	{
-
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		window.clear();
-
-		robot_pos.x = rob_base.position.x;
-		robot_pos.y = rob_base.position.y;
-		if (map.at(robot_pos.x, robot_pos.y) != ROBOT_PATH_MAP_CHAR) {
-			// save to map last position
-			Path.resize(++rob_base.path_mem_size);
-			map.at(robot_pos.x, robot_pos.y) = ROBOT_PATH_MAP_CHAR;
-		}
-		draw_map(window, map, rob_base, Obs, lines, Path);
-		window.display();
-		synchCndVar.notify_one();
-		//Sleep(1);
-	}
-	sim.off_simulation();
-}
 // checked is there are obstacle by compare points of every sensor line with obstacle coordinates
 void check_sensors(Whole_map &map, robot_params &rob_base)
 {
@@ -282,7 +154,9 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	{
 		synchCndVar.wait(uLock);
 		if (exit_ctrl)
+		{
 			return;
+		}
 		check_sensors(map, rob_base);
 		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 		sensor_points_ptr = rob_base.get_sensor_points();
