@@ -49,8 +49,7 @@ void draw_map(sf::RenderWindow &win,
 void draw_other(sf::RenderWindow &win,
 	Whole_map &map,
 	robot_params &rob_base,
-	std::vector<sf::CircleShape> &sens_line_space,
-	std::vector<map_point> &path_space)
+	std::vector<sf::CircleShape> &sens_line_space)
 {
 	sf::CircleShape Circle_path(0.5);
 	sf::CircleShape Circle_rob(0.5);
@@ -58,16 +57,13 @@ void draw_other(sf::RenderWindow &win,
 	sf::CircleShape Circle_sens_line(1.f);
 	sf::CircleShape Circle_orient(1.f);
 	Circle_path.setFillColor(sf::Color::Red);
-	unsigned int k = 0;
 
 	//catch position trough the wibe (proceedeng float to int)
-	for (unsigned int i = 0; i < path_space.size(); ++i)
+	for (unsigned int i = 0; i < rob_base.Path.size(); ++i)
 	{
-		Circle_path.setPosition(path_space.at(i).x, path_space.at(i).y);
+		Circle_path.setPosition(rob_base.Path.at(i).x, rob_base.Path.at(i).y);
 		win.draw(Circle_path);
-		k++;
 	}
-
 
 	// Draw current robot position
 	Circle_rob.setFillColor(sf::Color::Red);
@@ -100,7 +96,6 @@ void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
 
 	sf::RenderWindow window(sf::VideoMode(map.get("width"), map.get("height")), "SFML works!");
 	std::vector<sf::CircleShape> Obs;
-	std::vector<map_point> Path;
 	std::vector<sf::CircleShape> lines;
 	unsigned long size = map.obstacles_weight;
 	map_point robot_pos;
@@ -118,21 +113,13 @@ void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-		//synchCndVar.wait(uLock);
+		// signal to robot_logic that don't wont to be earlier than this thread (he can began now)
+		synchCndVar.notify_one();
 		WAIT_FOR_DRIVE(synchCndVar, uLock);
 		window.clear();
 		draw_map(window, map, Obs);
 		
-		robot_pos.x = rob_base.position.x;
-		robot_pos.y = rob_base.position.y;
-		if (map.at(robot_pos.x, robot_pos.y) != ROBOT_PATH_MAP_CHAR)
-		{
-			// save to map last position
-			Path.push_back(robot_pos);
-			map.at(robot_pos.x, robot_pos.y) = ROBOT_PATH_MAP_CHAR;
-		}
-		
-		draw_other(window, map, rob_base, lines, Path);
+		draw_other(window, map, rob_base, lines);
 		window.display();
 		SIGNAL_TO_DRIVE(synchCndVar);
 	}

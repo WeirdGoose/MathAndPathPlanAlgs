@@ -10,7 +10,7 @@
 
 // header of the main programm
 
-#define DRAW_AFTER_SIM_MODE 0
+#define DRAW_AFTER_SIM_MODE 1
 
 #if DRAW_AFTER_SIM_MODE 
 #define SIGNAL_TO_DRAW(SYNCH)		SYNCH.notify_one()

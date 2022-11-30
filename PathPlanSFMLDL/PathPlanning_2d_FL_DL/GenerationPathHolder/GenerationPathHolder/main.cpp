@@ -140,7 +140,7 @@ void make_one_step(Whole_map &map, robot_params &rob_base)
 	rob_base.position.x = map.rob_position.x;
 	rob_base.position.y = map.rob_position.y;
 	rob_base.orientation_angle = map.orientation_angle;
-	
+	rob_base.Path.push_back(map.rob_position);
 	rob_base.set_speed(real_speed);
 }
 
@@ -150,11 +150,14 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	sensor_point *sensor_points_ptr; 
 	BOOL exit_ctrl = 0;
 	sensor_points_ptr = rob_base.get_sensor_points();
+	// check that we began not earlier than scene_movment thread
+	synchCndVar.wait(uLock);
 	while (sim.simulation_state()) 
 	{
-		synchCndVar.wait(uLock);
+		WAIT_FOR_DRAW(synchCndVar, uLock);
 		if (exit_ctrl)
 		{
+			SIGNAL_TO_DRAW(synchCndVar);
 			return;
 		}
 		check_sensors(map, rob_base);

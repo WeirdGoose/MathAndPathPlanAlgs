@@ -65,6 +65,7 @@ public:
 	fl::OutputVariable* mSteer;
 	fl::OutputVariable* fl_outSpeed;
 	fl::RuleBlock* mamdani;
+	std::vector<obstacle_point> Path;
 	std::vector<sens_det_dist_> sens_math_lambdas;	// array of rate vectors for every n compare points  of 1 sensor line(or sensor point)
 	std::vector<triangle_term_> terms;
 	unsigned long path_mem_size = 1;
