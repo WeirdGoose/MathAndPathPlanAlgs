@@ -15,6 +15,8 @@ const int sens_react_rad = 29;
 // для ген алгоритма (считается, что позиция уже выставленна)
 void init_logic(robot_params &rob_base, rob_pop_type_ identificator, variables_set &var_set)
 {
+	rob_base.chosen_one = 0;
+	rob_base.steps_number = 0;
 	rob_base.delta_t = START_DELTA_T;
 
 	rob_base.aim.x = AIM_POS_X;
@@ -38,7 +40,7 @@ void init_logic(robot_params &rob_base, rob_pop_type_ identificator, variables_s
 					rob_base.fl_outSpeed,
 					rob_base.mamdani,
 					var_set);
-
+	rob_base.failure = 0;
 	rob_base.orient_repulsive.y = 0;
 	rob_base.orient_repulsive.x = 0;
 }
@@ -60,7 +62,7 @@ void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
 	rob_base.mSteer = new fl::OutputVariable;
 	rob_base.fl_outSpeed = new fl::OutputVariable;
 	rob_base.mamdani = new fl::RuleBlock;
-
+	rob_base.failure = 0;
 	init_fuzzy(rob_base.engine,
 		rob_base.fl_speed,
 		rob_base.fl_obs_angle,

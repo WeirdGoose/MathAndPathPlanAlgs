@@ -2,6 +2,7 @@
 #include "Whole_map.h"
 #include "gen_pars.h"
 #include "fl/Headers.h"
+#include "manu_fuzzy_logic.h"
 
 
 // in whole_map coordinate system
@@ -22,7 +23,7 @@
 #define NUM_OF_SENS_CHK_STEPS 30
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
-#define ORIENT_DIST LINES_RADIUS
+#define ORIENT_DIST LINES_RADIUS	
 #define AIM_RADIUS	6
 
 
@@ -59,6 +60,7 @@ class robot_params
 		}
 	}
 public:
+	bool chosen_one = 0;
 	fl::Engine* engine;
 	fl::InputVariable* fl_speed;
 	fl::InputVariable* fl_obs_angle;
@@ -67,6 +69,9 @@ public:
 	fl::RuleBlock* mamdani;
 	std::vector<sens_det_dist_> sens_math_lambdas;	// array of rate vectors for every n compare points  of 1 sensor line(or sensor point)
 	unsigned long path_mem_size = 1;
+	std::vector<obstacle_point> path;
+	BOOL failure;
+	variables_set genes;
 	float delta_t;
 	obstacle_point aim;
 	obstacle_point position;

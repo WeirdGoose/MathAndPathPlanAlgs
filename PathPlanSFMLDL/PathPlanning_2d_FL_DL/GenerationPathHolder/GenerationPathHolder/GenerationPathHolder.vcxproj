@@ -77,7 +77,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>SFML_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\UtilsAndLs\SFML-2.5.1\include\; c:\UtilsAndLs\fuzzylite-6.0\fuzzylite\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\UtilsAndLs\SFML-2.5.1\include\;c:\UtilsAndLs\fuzzylite-6.0\fuzzylite\;c:\UtilsAndLs\gnuplot_another\gnuplot-cpp\trunk\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

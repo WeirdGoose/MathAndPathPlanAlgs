@@ -14,6 +14,33 @@ extern std::mutex synchMutex;
 extern std::mutex synchMutex2;
 extern std::condition_variable synchCndVar;
 
+void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vector<_angle_type>& orientation_angle)
+{
+	rob_pop_type_ idx = 0;
+	robs_positions.resize(GEN_POPULATION);
+	orientation_angle.resize(GEN_POPULATION);
+	uint8_t diff_x = 2;
+	uint8_t diff_y = 0;
+	for (auto &position : robs_positions)
+	{
+		if (position.x + (idx)*diff_x < MAX_MAP_SIZE_X)
+			position.x = START_ROBOT_POS_X + (idx)*diff_x;
+		else if (position.x - (idx)*diff_x > 0)
+			position.x = START_ROBOT_POS_X - (idx)*diff_x;
+		else
+			throw std::overflow_error("too big number of robots for x bias\n");
+
+		if (position.y + (idx)*diff_y < MAX_MAP_SIZE_Y)
+			position.y = START_ROBOT_POS_Y + (idx)*diff_y;
+		else if (position.y - (idx)*diff_y > 0)
+			position.y = START_ROBOT_POS_Y - (idx)*diff_y;
+		else
+			throw std::overflow_error("too big number of robots for y bias\n");
+		orientation_angle.at(idx) = 0;
+		idx++;
+		cout << "rob " << idx << " position x  " << position.x << " position y " << position.y << "\n";
+	}
+}
 
 void set_map(Whole_map &map)
 {
@@ -29,7 +56,7 @@ void set_map(Whole_map &map)
 	map.aim.x = AIM_POS_X;
 	map.aim.y = AIM_POS_Y;
 
-	start_position_rules(map.robs_positions);
+	start_position_rules(map.robs_positions, map.orientation_angle);
 }
 
 void draw_map(sf::RenderWindow &win,
@@ -49,8 +76,7 @@ void draw_map(sf::RenderWindow &win,
 void draw_other(sf::RenderWindow &win,
 	Whole_map &map,
 	robot_params &rob_base,
-	std::vector<sf::CircleShape> &sens_line_space,
-	std::vector<map_point> &path_space)
+	std::vector<sf::CircleShape> &sens_line_space)
 {
 	sf::CircleShape Circle_path(0.5);
 	sf::CircleShape Circle_rob(0.5);
@@ -58,14 +84,12 @@ void draw_other(sf::RenderWindow &win,
 	sf::CircleShape Circle_sens_line(1.f);
 	sf::CircleShape Circle_orient(1.f);
 	Circle_path.setFillColor(sf::Color::Red);
-	unsigned int k = 0;
 
 	//catch position trough the wibe (proceedeng float to int)
-	for (unsigned int i = 0; i < path_space.size(); ++i)
+	for (unsigned int i = 0; i < rob_base.path.size(); ++i)
 	{
-		Circle_path.setPosition(path_space.at(i).x, path_space.at(i).y);
+		Circle_path.setPosition(rob_base.path.at(i).x, rob_base.path.at(i).y);
 		win.draw(Circle_path);
-		k++;
 	}
 
 
@@ -123,19 +147,9 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 		WAIT_FOR_DRIVE(synchCndVar, uLock);
 		window.clear();
 		draw_map(window, map, Obs);
+		
 		for (auto& rob_base : rob_gen)
-		{
-			robot_pos.x = rob_base.position.x;
-			robot_pos.y = rob_base.position.y;
-			if (map.at(robot_pos.x, robot_pos.y) != ROBOT_PATH_MAP_CHAR)
-			{
-				// save to map last position
-				Path.push_back(robot_pos);
-				map.at(robot_pos.x, robot_pos.y) = ROBOT_PATH_MAP_CHAR;
-			}
-		}
-		for (auto& rob_base : rob_gen)
-			draw_other(window, map, rob_base, lines, Path);
+			draw_other(window, map, rob_base, lines);
 		window.display();
 		//synchCndVar.notify_one();
 		SIGNAL_TO_DRIVE(synchCndVar);
@@ -143,3 +157,4 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 	}
 	sim.off_simulation();
 }
+

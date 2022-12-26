@@ -11,8 +11,6 @@
 #define ROB_ERROR_SPEED 0.2
 #define ROB_ERROR_ROTATION 0.000112
 
-#define GEN_POPULATION 20
-
 #define MAX_MAP_SIZE_X 500
 #define MAX_MAP_SIZE_Y 500
 
@@ -45,7 +43,7 @@ public:
 	obstacle_point aim;
 	std::vector<map_point> short_obs;
 	std::vector<obstacle_point> robs_positions;
-	_angle_type orientation_angle;
+	std::vector<_angle_type> orientation_angle;
 	unsigned long obstacles_weight = 0;
 	Whole_map(unsigned int width, unsigned int height) :
 		map_points(width, Column(height)) {

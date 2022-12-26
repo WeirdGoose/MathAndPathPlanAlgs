@@ -49,11 +49,9 @@ void draw_map(sf::RenderWindow &win,
 void draw_other(sf::RenderWindow &win,
 	Whole_map &map,
 	robot_params &rob_base,
-	std::vector<sf::CircleShape> &sens_line_space,
-	std::vector<map_point> &path_space);
+	std::vector<sf::CircleShape> &sens_line_space);
 
-void start_position_rules(std::vector<obstacle_point> &robs_positions);
-
+void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vector<_angle_type>& orientation_angle);
 void scene_movment(	Whole_map &map, 
 					std::vector<robot_params>& rob_gen,
 					simulation &sim	);

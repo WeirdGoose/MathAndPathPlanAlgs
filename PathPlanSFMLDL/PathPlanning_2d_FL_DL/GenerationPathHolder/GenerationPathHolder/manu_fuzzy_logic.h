@@ -79,6 +79,28 @@ public:
 		dsv.middle_pars = this->osdsv.middle_pars;
 		dsv.high_pars = this->osdsv.high_pars;
 	}
+	void get_copy_from(variables_set& req_set)
+	{
+		this->iodsv.left_pars = req_set.iodsv.left_pars ;
+		this->iodsv.leftp_pars = req_set.iodsv.leftp_pars;
+		this->iodsv.front_pars = req_set.iodsv.front_pars;
+		this->iodsv.rightp_pars = req_set.iodsv.rightp_pars;
+		this->iodsv.right_pars = req_set.iodsv.right_pars;
+
+		this->oodsv.left_pars = req_set.oodsv.left_pars;
+		this->oodsv.leftp_pars = req_set.oodsv.leftp_pars;
+		this->oodsv.front_pars = req_set.oodsv.front_pars;
+		this->oodsv.rightp_pars = req_set.oodsv.rightp_pars;
+		this->oodsv.right_pars = req_set.oodsv.right_pars;
+
+		this->isdsv.low_pars = req_set.isdsv.low_pars;
+		this->isdsv.middle_pars = req_set.isdsv.middle_pars;
+		this->isdsv.high_pars = req_set.isdsv.high_pars;
+
+		this->osdsv.low_pars = req_set.osdsv.low_pars;
+		this->osdsv.middle_pars = req_set.osdsv.middle_pars;
+		this->osdsv.high_pars = req_set.osdsv.high_pars;
+	}
 	void add_right_elems_symm(obs_desition_space &dsv)
 	{
 		for (uint8_t idx = 0; idx < dsv.left_pars.size(); idx++)
