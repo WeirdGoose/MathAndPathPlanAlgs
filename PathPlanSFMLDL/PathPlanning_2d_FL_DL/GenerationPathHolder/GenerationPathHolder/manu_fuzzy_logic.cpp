@@ -1,6 +1,9 @@
 #include "manu_fuzzy_logic.h"
 #include "fl/Headers.h"
 #include "robot_AI.h"
+#include "gnuplot_i.hpp"
+#include <array>
+
 
 typedef struct obs_desition_space_ {
 	std::vector<float> left_pars;
@@ -15,6 +18,68 @@ typedef struct speed_desition_space_ {
 	std::vector<float> middle_pars;
 	std::vector<float> high_pars;
 }speed_desition_space;
+
+void fill_term(std::vector<float>& terms, std::vector<float>& x_vals, std::vector<float>& y_vals)
+{
+	std::array<float, 4> arr{ 0, 1, 1, 0 };
+	int idx = 0;
+	std::string tmp_str;
+	std::string whole_writing;
+
+	for (auto& point : terms)
+	{
+		x_vals.push_back(point);
+		y_vals.push_back(arr.at(idx));
+		idx++;
+	}
+
+}
+
+void draw_obs_vars(obs_desition_space &dsv)
+{
+	Gnuplot plot;
+
+	std::vector<float> x_vals;
+	std::vector<float> y_vals;
+	std::vector<float> arrow_x{ -100, 100 };
+	std::vector<float> arrow_y{ 0, 0 };
+
+	fill_term(dsv.left_pars, x_vals, y_vals);
+	fill_term(dsv.leftp_pars, x_vals, y_vals);
+	fill_term(dsv.front_pars, x_vals, y_vals);
+	fill_term(dsv.rightp_pars, x_vals, y_vals);
+	fill_term(dsv.right_pars, x_vals, y_vals);
+
+
+	plot.set_xautoscale();
+	plot.set_yautoscale();
+	plot.set_grid(100, 100);
+	plot.plot_xy(x_vals, y_vals, "xy", 1);
+	plot.plot_xy(arrow_x, arrow_y, "arr", 1);
+	return;
+}
+
+void draw_speed_vars(speed_desition_space &dsv)
+{
+	Gnuplot plot;
+
+	std::vector<float> x_vals;
+	std::vector<float> y_vals;
+	std::vector<float> arrow_x{ 0, MAX_SPEED + 2 };
+	std::vector<float> arrow_y{ 0, 0 };
+
+	fill_term(dsv.low_pars, x_vals, y_vals);
+	fill_term(dsv.middle_pars, x_vals, y_vals);
+	fill_term(dsv.high_pars, x_vals, y_vals);
+
+	plot.set_xautoscale();
+	plot.set_yautoscale();
+	plot.set_grid(100, 100);
+	plot.plot_xy(x_vals, y_vals, "xy", 1);
+	plot.plot_xy(arrow_x, arrow_y, "arr", 1);
+	return;
+}
+
 
 void init_input_obs_terms(obs_desition_space &dsv)
 {
@@ -31,6 +96,7 @@ void init_input_obs_terms(obs_desition_space &dsv)
 	dsv.front_pars = front_pars;
 	dsv.rightp_pars = rightp_pars;
 	dsv.right_pars = right_pars;
+	draw_obs_vars(dsv);
 #else
 
 #endif
@@ -45,6 +111,7 @@ void init_input_speed_terms(speed_desition_space &dsv)
 	dsv.low_pars = low_pars;
 	dsv.middle_pars = middle_pars;
 	dsv.high_pars = high_pars;
+	draw_speed_vars(dsv);
 #else
 
 #endif
@@ -64,6 +131,7 @@ void init_output_obs_terms(obs_desition_space &dsv)
 	dsv.front_pars = front_pars;
 	dsv.rightp_pars = rightp_pars;
 	dsv.right_pars = right_pars;
+
 #else
 
 #endif
@@ -78,6 +146,7 @@ void init_output_speed_terms(speed_desition_space &dsv)
 	dsv.low_pars = low_pars;
 	dsv.middle_pars = middle_pars;
 	dsv.high_pars = high_pars;
+
 #else
 
 #endif

@@ -76,8 +76,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>SFML_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\UtilsAndLs\SFML-2.5.1\include\; c:\UtilsAndLs\fuzzylite-6.0\fuzzylite\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>c:\UtilsAndLs\gnuplot_another\gnuplot-cpp\trunk;c:\UtilsAndLs\SFML-2.5.1\include\;c:\UtilsAndLs\fuzzylite-6.0\fuzzylite\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -235,6 +235,7 @@
     <ClCompile Include="manu_fuzzy_logic.cpp" />
     <ClCompile Include="robot_AI.cpp" />
     <ClCompile Include="MapDraw.cpp" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gen_pars.h" />

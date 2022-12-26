@@ -26,8 +26,6 @@
 #define AIM_RADIUS	6
 
 
-
-
 class robot_params 
 {
 	sensor_point sensor_points[LINES_NUMBER];

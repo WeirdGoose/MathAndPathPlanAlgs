@@ -311,6 +311,7 @@
     <ClCompile Include="C:\UtilsAndLs\fuzzylite-6.0\fuzzylite\src\main.cpp">
       <Filter>FuzzyLib</Filter>
     </ClCompile>
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gen_pars.h" />

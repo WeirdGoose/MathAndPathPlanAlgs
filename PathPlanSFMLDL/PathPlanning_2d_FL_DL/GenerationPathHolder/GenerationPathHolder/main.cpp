@@ -118,6 +118,7 @@ void make_one_step(Whole_map &map, robot_params &rob_base)
 	_angle_type rotation_strength;
 	_angle_type prev_curr_rot_diff = abs(map.orientation_angle - rob_base.orientation_angle);
 	cout << "cur angle " << map.orientation_angle << " req angle " << rob_base.orientation_angle << endl;
+
 	// angles range should be from 0 to 2*M_PI
 	if (prev_curr_rot_diff > max_rotation_ability)
 		if(prev_curr_rot_diff < M_PI)
