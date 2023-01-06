@@ -24,7 +24,11 @@ typedef struct speed_desition_space_ {
 	std::vector<float> high_pars;
 }speed_desition_space;
 
-class variables_set {
+void draw_speed_vars(speed_desition_space &dsv);
+void draw_obs_vars(obs_desition_space &dsv, std::string title = "obs desition space", std::string filename = "");
+
+class variables_set 
+{
 public:
 	obs_desition_space		iodsv; // input obstacle desition vector
 	speed_desition_space	isdsv; // input speed desition vector
@@ -110,7 +114,7 @@ public:
 			dsv.rightp_pars[idx] = -dsv.leftp_pars[dsv.leftp_pars.size() - idx - 1];
 
 		for (uint8_t idx = 0; idx < dsv.front_pars.size()/2; idx++)
-			dsv.front_pars[idx] = -dsv.front_pars[dsv.front_pars.size() - idx - 1];
+			dsv.front_pars[dsv.front_pars.size() - idx - 1] = -dsv.front_pars[idx];
 	}
 
 };

@@ -14,8 +14,16 @@
 HANDLE sleepTimerMutex;
 std::mutex synchMutex;
 std::mutex synchMutex2;
+std::mutex synchMutex3;
 std::condition_variable synchCndVar;
+std::condition_variable synchMainDraw;
+std::condition_variable generationEnd;
 
+template <class one_p, class another_p>
+float get_distance(one_p point1, another_p point2)
+{
+	return sqrt(pow(point1.x - point2.x, 2) + pow(point1.y - point2.y, 2));
+}
 
 // TODO
 /*
@@ -34,39 +42,42 @@ int main()
 	unsigned int map_heigth = MAX_MAP_SIZE_Y;
 	simulation sim1;
 	std::vector<robot_params> rob_gen;
+	std::vector<genetic_log> gen_logger;
 	rob_gen.resize(GEN_POPULATION);
 
 	Whole_map map(map_width, map_heigth); 
 	//Create
-	std::vector<std::thread*> rob_gen_ai;
+	std::vector<std::thread> rob_gen_ai;
 	rob_gen_ai.resize(GEN_POPULATION);
 
 	set_map(map);
+	std::unique_lock<std::mutex> uLock_md(synchMutex3);
 	std::thread graphics(scene_movment, std::ref(map), std::ref(rob_gen), std::ref(sim1));
+	std::thread debug_terminal(debug_term_cmd, std::ref(map), std::ref(rob_gen), std::ref(sim1));
+	synchMainDraw.wait(uLock_md);
 
 	for (generation_type gen_number = 0; gen_number < GENERATIONS_NUM; gen_number++)
 	{
 		sim1.off_simulation();
+
 		genetic_init(rob_gen);
-		genetic_start(rob_gen, map, gen_number);
+		genetic_start(rob_gen, map, gen_number, gen_logger);
 
 		time_begin = std::chrono::steady_clock::now();
-
-		for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
-		{
-			std::thread * new_thread = new std::thread(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
-			rob_gen_ai.push_back(new_thread);
-		}
 		sim1.start_simulation();
-
-		std::unique_lock<std::mutex> uLock(synchMutex2);
-		synchCndVar.wait(uLock);
-		for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
-			delete rob_gen_ai.at(rob_num);
-	}
+		for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); rob_num++)
+		{
+			//std::thread * new_thread = new *std::thread(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
+			rob_gen_ai.emplace_back(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
+		}
 	
+		std::unique_lock<std::mutex> uLock(synchMutex2);
+		generationEnd.wait(uLock);
+		//for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
+		//	delete rob_gen_ai.at(rob_num);
+	}
 
-	while (sim1.simulation_state()) 
+	while (sim1.simulation_state())
 		Sleep(100);
 
 	char c;
@@ -135,36 +146,46 @@ void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_poi
 // moves through the map, depending on speed, orientation and delta t
 BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 {
+	const float skid_coeff = 1.5;
 	rob_pop_type_ identificator = rob_base.identificator;
 	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
+	_angle_type last_orientation = map.orientation_angle.at(identificator);
+
 	map.orientation_angle.at(identificator) = rob_base.orientation_angle + ROB_ERROR_ROTATION;
-	
+
 	if (map.at(map.robs_positions.at(identificator).x, map.robs_positions.at(identificator).y) == OBSTACLE_MAP_CHAR)
 	{
 		real_speed = 0;
 		rob_base.failure = 1;
-		rob_base.steps_number = LLONG_MAX - rob_base.steps_number;
+		rob_base.steps_number = LLONG_MAX - sqrt(pow(MAX_MAP_SIZE_X, 2)
+											+ pow(MAX_MAP_SIZE_Y, 2))
+											+ get_distance(rob_base.aim, rob_base.position);
 		return 1;
 	}
 	map.robs_positions.at(identificator).x = rob_base.position.x + real_speed * cos(map.orientation_angle.at(identificator)) * rob_base.delta_t;
 	map.robs_positions.at(identificator).y = rob_base.position.y + real_speed * sin(map.orientation_angle.at(identificator)) * rob_base.delta_t;
+	map.robs_positions.at(identificator).x += real_speed * cos(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) * skid_coeff;
+	map.robs_positions.at(identificator).y += real_speed * sin(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) * skid_coeff;
 	rob_base.position.x = map.robs_positions.at(identificator).x;
 	rob_base.position.y = map.robs_positions.at(identificator).y;
 	rob_base.orientation_angle = map.orientation_angle.at(identificator);
 	rob_base.path.push_back(rob_base.position);
 	rob_base.set_speed(real_speed);
 	rob_base.steps_number++;
+	return 0;
 }
 
-void signal_to_draw_if_i_last(){
+void signal_to_draw_if_i_last()
+{
 	static uint32_t ended_robots = 0;
 	if (ended_robots == GEN_POPULATION - 1)
 	{
 		time_end = std::chrono::steady_clock::now();
-		std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_begin).count() << "\t[us]" << std::endl;
-		std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_begin).count() << "\t[ns]" << std::endl;
-
+		//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_begin).count() << "\t[us]" << std::endl;
+		//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_begin).count() << "\t[ns]" << std::endl;
+		
 		SIGNAL_TO_DRAW(synchCndVar);
+		generationEnd.notify_all();
 		ended_robots = 0;
 	}
 	else 
@@ -184,6 +205,7 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		WAIT_FOR_DRAW(synchCndVar, uLock);
 		if (exit_ctrl)
 		{
+			//printf("rob %d path ends steps number %lld, failed %d\n", rob_base.identificator, rob_base.steps_number, rob_base.failure);
 			signal_to_draw_if_i_last();
 			return;
 		}
@@ -191,10 +213,16 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 		sensor_points_ptr = rob_base.get_sensor_points();
 		
-		
-		exit_ctrl = make_one_step(map, rob_base);
+		if(!exit_ctrl)
+			exit_ctrl = make_one_step(map, rob_base);
+		if (rob_base.steps_number > 300)
+		{
+			rob_base.failure = 1;
+			rob_base.steps_number = 300 + get_distance(rob_base.aim, rob_base.position);
+			exit_ctrl = 1;
+		}
+			
 		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
-		rob_base.steps_number++;
 		//sensor_points_ptr = rob_base.get_sensor_points();
 		//direct_sensors(sensor_points_ptr, map.orientation_angle, map.rob_position);
 	}

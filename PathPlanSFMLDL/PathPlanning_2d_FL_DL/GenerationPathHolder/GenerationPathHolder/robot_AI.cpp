@@ -12,6 +12,7 @@ const float pos_sc_fact = 4;
 const float rob_rad = 1;
 const int sens_react_rad = 29;
 
+
 // для ген алгоритма (считается, что позиция уже выставленна)
 void init_logic(robot_params &rob_base, rob_pop_type_ identificator, variables_set &var_set)
 {
@@ -49,11 +50,14 @@ void init_logic(robot_params &rob_base, rob_pop_type_ identificator, variables_s
 void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
 {
 	rob_base.delta_t = START_DELTA_T;
+	rob_base.chosen_one = 0;
+	rob_base.steps_number = 0;
 
 	rob_base.aim.x = AIM_POS_X;
 	rob_base.aim.y = AIM_POS_Y;
 	rob_base.set_speed(START_SPEED);
-	
+	rob_base.set_direction(rob_base.aim);
+
 	rob_base.identificator = identificator;
 	
 	rob_base.engine = new fl::Engine;
@@ -86,7 +90,8 @@ float sens_loc_angle_by_num(_sensor_num_type num)
 	{
 		angle  = -SENSOR_RAD_STEP * (num - LINES_NUMBER / 2);
 	}
-	else {
+	else 
+	{
 		cout << "sens_angle_by_num: wrong number!!!!\n";
 		return 0;
 	}
@@ -193,7 +198,7 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 			//cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
 
 			float out_glob_angle = orient_from_local_angle(rob_base.mSteer->getValue(), rob_base.orientation_angle);
-
+			
 			//cout << "in angle is " << angle_ctrl << " fl angle is "
 			//	<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
 			//
@@ -202,6 +207,7 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 			rob_base.set_direction_by_angle(out_glob_angle);
 
 			rob_base.set_speed(rob_base.fl_outSpeed->getValue());
+			
 		}
 		else
 		{

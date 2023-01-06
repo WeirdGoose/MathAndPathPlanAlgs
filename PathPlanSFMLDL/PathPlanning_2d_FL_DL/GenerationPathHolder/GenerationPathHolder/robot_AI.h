@@ -6,7 +6,7 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 250
+#define START_ROBOT_POS_X 320
 #define START_ROBOT_POS_Y 320
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
@@ -18,7 +18,7 @@
 #define MAX_SPEED_2 MAX_SPEED*MAX_SPEED
 #define START_SPEED MAX_SPEED
 
-#define LINES_NUMBER 11
+#define LINES_NUMBER 100
 #define LINES_RADIUS 30
 #define NUM_OF_SENS_CHK_STEPS 30
 #define SENSOR_RAD M_PI
@@ -125,7 +125,7 @@ public:
 	{
 		this->position.x = pos.x;
 		this->position.y = pos.y;
-		cout << "robot_params:: rob " << this->identificator << " position x, y is " << pos.x << ", " << pos.y << "\n";
+		cout << "robot_params:: rob " << (uint32_t)this->identificator << " position x, y is " << pos.x << ", " << pos.y << "\n";
 		//set_direction_by_angle(angle);
 		this->sens_math_lambdas.resize(NUM_OF_SENS_CHK_STEPS);
 		// setting lambdas (there can be linear or another correlation)
@@ -158,3 +158,5 @@ void calc_orient_repulsive(	sensor_point *sensor_points_ptr,
 							_sensor_num_type rob_lines_num,
 							obstacle_point position);
 BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mode mode);
+
+

@@ -8,11 +8,39 @@
 #include <synchapi.h>
 #include <condition_variable>
 #include "genetic_algh.h"
+#include <cstdlib>
 
 extern HANDLE sleepTimerMutex;
 extern std::mutex synchMutex;
 extern std::mutex synchMutex2;
+extern std::mutex synchMutex3;
 extern std::condition_variable synchCndVar;
+extern std::condition_variable synchMainDraw;
+
+
+void debug_term_cmd(Whole_map& map, std::vector<robot_params>& rob_gen, simulation& sim1)
+{
+	std::string cmd_str;
+	int index = 0;
+	std::string nl_str = "nl";
+	std::string draw_str = "draw";
+	std::string help_str = "help";
+
+	if (!sim1.simulation_state())
+		while (!sim1.simulation_state()) Sleep(1); 
+	while (sim1.simulation_state())
+	{
+		std::cin >> cmd_str;
+		if (!strcmp(cmd_str.c_str(), draw_str.c_str()))
+			synchCndVar.notify_one();
+		else if (cmd_str.find(nl_str, index) == 0)
+			draw_obs_vars(rob_gen.at(std::atoi(cmd_str.substr(nl_str.size(), cmd_str.size() - nl_str.size()).c_str())).genes.iodsv);
+		else if (!strcmp(cmd_str.c_str(), help_str.c_str()))
+			std::cout << "type \"" << draw_str << "\" to draw current bots position \n"
+			<< "type \"" << nl_str << "[rob identificator]\" to to get fuzzy variables \n";
+	}
+}
+
 
 void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vector<_angle_type>& orientation_angle)
 {
@@ -21,6 +49,7 @@ void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vect
 	orientation_angle.resize(GEN_POPULATION);
 	uint8_t diff_x = 2;
 	uint8_t diff_y = 0;
+#if ROBS_DIFF_POS
 	for (auto &position : robs_positions)
 	{
 		if (position.x + (idx)*diff_x < MAX_MAP_SIZE_X)
@@ -38,8 +67,17 @@ void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vect
 			throw std::overflow_error("too big number of robots for y bias\n");
 		orientation_angle.at(idx) = 0;
 		idx++;
-		cout << "rob " << idx << " position x  " << position.x << " position y " << position.y << "\n";
+		cout << "rob " << (uint32_t)idx << " position x  " << position.x << " position y " << position.y << "\n";
 	}
+#else
+	for (auto &position : robs_positions)
+	{
+		position.x = START_ROBOT_POS_X;
+		position.y = START_ROBOT_POS_Y;
+		orientation_angle.at(idx) = 0;
+		idx++;
+	}
+#endif
 }
 
 void set_map(Whole_map &map)
@@ -83,7 +121,7 @@ void draw_other(sf::RenderWindow &win,
 	sf::CircleShape Circle_aim(3.f);
 	sf::CircleShape Circle_sens_line(1.f);
 	sf::CircleShape Circle_orient(1.f);
-	Circle_path.setFillColor(sf::Color::Red);
+	Circle_path.setFillColor(sf::Color::Yellow);
 
 	//catch position trough the wibe (proceedeng float to int)
 	for (unsigned int i = 0; i < rob_base.path.size(); ++i)
@@ -113,7 +151,7 @@ void draw_other(sf::RenderWindow &win,
 		win.draw(Circle_sens_line);
 	}
 	obstacle_point orient = rob_base.get_orientation();
-	Circle_orient.setFillColor(sf::Color::Red);
+	Circle_orient.setFillColor(sf::Color::Magenta);
 	Circle_orient.setPosition(orient.x, orient.y);
 	win.draw(Circle_orient);
 
@@ -142,8 +180,8 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
-		}
-		//synchCndVar.wait(uLock);
+		}		
+		synchMainDraw.notify_one();
 		WAIT_FOR_DRIVE(synchCndVar, uLock);
 		window.clear();
 		draw_map(window, map, Obs);
@@ -151,9 +189,7 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 		for (auto& rob_base : rob_gen)
 			draw_other(window, map, rob_base, lines);
 		window.display();
-		//synchCndVar.notify_one();
 		SIGNAL_TO_DRIVE(synchCndVar);
-		//Sleep(1);
 	}
 	sim.off_simulation();
 }

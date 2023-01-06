@@ -63,3 +63,5 @@ typedef struct sensor_point_ {
 	_angle_type angle_from_center;
 }sensor_point;
 
+template <class one_p, class another_p>
+float get_distance(one_p point1, another_p point2);
