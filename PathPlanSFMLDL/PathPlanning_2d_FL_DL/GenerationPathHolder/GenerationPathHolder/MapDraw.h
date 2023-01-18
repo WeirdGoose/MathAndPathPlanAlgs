@@ -9,8 +9,9 @@
 
 // header of the main programm
 
-#define DRAW_AFTER_SIM_MODE 1
+#define DRAW_AFTER_SIM_MODE 0
 #define ROBS_DIFF_POS 0
+#define DRAW_WITH_POINTS 0
 
 #if DRAW_AFTER_SIM_MODE 
 #define SIGNAL_TO_DRAW(SYNCH)		SYNCH.notify_one()
@@ -61,4 +62,3 @@ void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_poi
 void robot_logic(Whole_map &map, 
 					robot_params &rob_base,
 					simulation &sim);
-void debug_term_cmd(Whole_map& map, std::vector<robot_params>& rob_gen, simulation& sim1);

@@ -339,6 +339,9 @@
     <ClCompile Include="MapDraw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctrl_and_log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Whole_map.h">
@@ -357,6 +360,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="genetic_algh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctrl_and_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

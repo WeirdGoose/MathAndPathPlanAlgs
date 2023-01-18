@@ -34,7 +34,7 @@ typedef float sens_det_dist_;
 typedef float _angle_type;
 typedef float _speed_type;
 typedef int8_t map_state_t_;
-typedef uint8_t _sensor_num_type;
+typedef uint16_t _sensor_num_type;
 
 typedef struct {
 	float peak;
@@ -45,10 +45,17 @@ typedef struct {
 
 typedef std::vector<map_state_t_> Column;
 
-typedef struct obstacle_point_ {
+class obstacle_point {
+public:
 	float x;
 	float y;
-}obstacle_point;
+	obstacle_point(){}
+	obstacle_point(float x, float y)
+	{
+		this->x = x;
+		this->y = y;
+	}
+};
 
 typedef struct map_point_ {
 	unsigned int x;
@@ -62,6 +69,25 @@ typedef struct sensor_point_ {
 	//  DON'T depends orientation (placed in local coordinate system) left sensor points are negative, right - positive, center - 0
 	_angle_type angle_from_center;
 }sensor_point;
+
+typedef struct circle_obs_ {
+	obstacle_point center;
+	float radius;
+}circle_obs;
+
+class line_obs {
+public:
+	obstacle_point point1;
+	obstacle_point point2;
+	line_obs() {}
+	line_obs(float p1x, float p1y, float p2x, float p2y)
+	{
+		this->point1.x = p1x;
+		this->point1.y = p1y;
+		this->point2.x = p2x;
+		this->point2.y = p2y;
+	}
+};
 
 template <class one_p, class another_p>
 float get_distance(one_p point1, another_p point2);

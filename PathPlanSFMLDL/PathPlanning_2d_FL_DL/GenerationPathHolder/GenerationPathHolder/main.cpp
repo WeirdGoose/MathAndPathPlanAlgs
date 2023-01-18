@@ -9,12 +9,13 @@
 #include <synchapi.h>
 #include <condition_variable>
 #include "genetic_algh.h"
-
+#include "ctrl_and_log.h"
 
 HANDLE sleepTimerMutex;
-std::mutex synchMutex;
-std::mutex synchMutex2;
-std::mutex synchMutex3;
+std::mutex drawRobMut;
+std::mutex mainRobMut;
+std::mutex RobDrawMut;
+std::mutex mainDrawMut;
 std::condition_variable synchCndVar;
 std::condition_variable synchMainDraw;
 std::condition_variable generationEnd;
@@ -38,8 +39,8 @@ std::chrono::steady_clock::time_point time_end;
 
 int main() 
 {
-	unsigned int map_width = MAX_MAP_SIZE_X;
-	unsigned int map_heigth = MAX_MAP_SIZE_Y;
+	unsigned int map_width = MAX_MAP_SIZE_X* SCALE;
+	unsigned int map_heigth = MAX_MAP_SIZE_Y* SCALE;
 	simulation sim1;
 	std::vector<robot_params> rob_gen;
 	std::vector<genetic_log> gen_logger;
@@ -51,10 +52,12 @@ int main()
 	rob_gen_ai.resize(GEN_POPULATION);
 
 	set_map(map);
-	std::unique_lock<std::mutex> uLock_md(synchMutex3);
+
+	std::unique_lock<std::mutex> uLock_md(mainDrawMut);
 	std::thread graphics(scene_movment, std::ref(map), std::ref(rob_gen), std::ref(sim1));
 	std::thread debug_terminal(debug_term_cmd, std::ref(map), std::ref(rob_gen), std::ref(sim1));
 	synchMainDraw.wait(uLock_md);
+
 
 	for (generation_type gen_number = 0; gen_number < GENERATIONS_NUM; gen_number++)
 	{
@@ -70,8 +73,7 @@ int main()
 			//std::thread * new_thread = new *std::thread(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
 			rob_gen_ai.emplace_back(robot_logic, std::ref(map), std::ref(rob_gen.at(rob_num)), std::ref(sim1));
 		}
-	
-		std::unique_lock<std::mutex> uLock(synchMutex2);
+		std::unique_lock<std::mutex> uLock(mainRobMut);
 		generationEnd.wait(uLock);
 		//for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
 		//	delete rob_gen_ai.at(rob_num);
@@ -102,7 +104,7 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 		{
 			sens_disc.x = (rob_base.position.x + rob_base.sens_math_lambdas[j] * sens_obs.pos.x) / (1 + rob_base.sens_math_lambdas[j]);
 			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
-			if (sens_disc.x < MAX_MAP_SIZE_X && sens_disc.y < MAX_MAP_SIZE_Y)
+			//if (sens_disc.x < MAX_MAP_SIZE_X*SCALE && sens_disc.y < MAX_MAP_SIZE_Y*SCALE)
 			{
 				if (map.at(sens_disc.x, sens_disc.y) == OBSTACLE_MAP_CHAR)
 				{
@@ -110,8 +112,6 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 					break;
 				}
 			}
-			//else
-				//cout << "WARNING WRONG SENSORS CALCULATE!!!\n";
 			
 		}
 	}
@@ -146,12 +146,12 @@ void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_poi
 // moves through the map, depending on speed, orientation and delta t
 BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 {
-	const float skid_coeff = 1.5;
+	
+	const _angle_type max_rotation_ability = 0.2*M_PI;
+	const float skid_coeff = max_rotation_ability;
 	rob_pop_type_ identificator = rob_base.identificator;
 	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
 	_angle_type last_orientation = map.orientation_angle.at(identificator);
-
-	map.orientation_angle.at(identificator) = rob_base.orientation_angle + ROB_ERROR_ROTATION;
 
 	if (map.at(map.robs_positions.at(identificator).x, map.robs_positions.at(identificator).y) == OBSTACLE_MAP_CHAR)
 	{
@@ -162,10 +162,29 @@ BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 											+ get_distance(rob_base.aim, rob_base.position);
 		return 1;
 	}
+
+	_angle_type rotation_strength;
+	_angle_type prev_curr_rot_diff = abs(map.orientation_angle.at(identificator) - rob_base.orientation_angle);
+
+	// angles range should be from 0 to 2*M_PI
+	if (prev_curr_rot_diff > max_rotation_ability)
+		if (prev_curr_rot_diff < M_PI)
+			map.orientation_angle.at(identificator) = map.orientation_angle.at(identificator) + max_rotation_ability * (rob_base.orientation_angle - map.orientation_angle.at(identificator)) / prev_curr_rot_diff + ROB_ERROR_ROTATION;
+		else
+			map.orientation_angle.at(identificator) = map.orientation_angle.at(identificator) - max_rotation_ability * (rob_base.orientation_angle - map.orientation_angle.at(identificator)) / prev_curr_rot_diff + ROB_ERROR_ROTATION;
+	else
+		map.orientation_angle.at(identificator) = rob_base.orientation_angle + ROB_ERROR_ROTATION;
+	// angle normalization
+	if (map.orientation_angle.at(identificator) > 2 * M_PI)
+		map.orientation_angle.at(identificator) = map.orientation_angle.at(identificator) - 2 * M_PI;
+	else if (map.orientation_angle.at(identificator) < 0)
+		map.orientation_angle.at(identificator) = 2 * M_PI + map.orientation_angle.at(identificator);
+
 	map.robs_positions.at(identificator).x = rob_base.position.x + real_speed * cos(map.orientation_angle.at(identificator)) * rob_base.delta_t;
 	map.robs_positions.at(identificator).y = rob_base.position.y + real_speed * sin(map.orientation_angle.at(identificator)) * rob_base.delta_t;
-	map.robs_positions.at(identificator).x += real_speed * cos(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) * skid_coeff;
-	map.robs_positions.at(identificator).y += real_speed * sin(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) * skid_coeff;
+	map.robs_positions.at(identificator).x += real_speed * cos(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
+	map.robs_positions.at(identificator).y += real_speed * sin(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
+	
 	rob_base.position.x = map.robs_positions.at(identificator).x;
 	rob_base.position.y = map.robs_positions.at(identificator).y;
 	rob_base.orientation_angle = map.orientation_angle.at(identificator);
@@ -185,7 +204,7 @@ void signal_to_draw_if_i_last()
 		//std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (time_end - time_begin).count() << "\t[ns]" << std::endl;
 		
 		SIGNAL_TO_DRAW(synchCndVar);
-		generationEnd.notify_all();
+		generationEnd.notify_one();
 		ended_robots = 0;
 	}
 	else 
@@ -194,7 +213,7 @@ void signal_to_draw_if_i_last()
 
 void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 {
-	std::unique_lock<std::mutex> uLock(synchMutex);
+	std::unique_lock<std::mutex> uLock(drawRobMut);
 	sensor_point *sensor_points_ptr; 
 	BOOL exit_ctrl = 0;
 	sensor_points_ptr = rob_base.get_sensor_points();
@@ -205,7 +224,8 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		WAIT_FOR_DRAW(synchCndVar, uLock);
 		if (exit_ctrl)
 		{
-			//printf("rob %d path ends steps number %lld, failed %d\n", rob_base.identificator, rob_base.steps_number, rob_base.failure);
+			printf("rob %d path ends steps number %lld, failed %d\n", rob_base.identificator, rob_base.steps_number, rob_base.failure);
+			std::cout << "rob pos " << rob_base.position.x << " " << rob_base.position.y << endl;
 			signal_to_draw_if_i_last();
 			return;
 		}

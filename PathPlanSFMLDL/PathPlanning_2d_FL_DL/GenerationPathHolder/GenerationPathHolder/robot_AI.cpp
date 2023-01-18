@@ -195,19 +195,11 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 			rob_base.fl_obs_angle->setValue(angle_ctrl);
 			rob_base.engine->process();
 
-			//cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
-
 			float out_glob_angle = orient_from_local_angle(rob_base.mSteer->getValue(), rob_base.orientation_angle);
 			
-			//cout << "in angle is " << angle_ctrl << " fl angle is "
-			//	<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
-			//
-			//cout << "out angle is " << rob_base.orientation_angle << " fl angle is "
-			//	<< fl::Op::str(rob_base.mSteer->getValue()) << "\n";
 			rob_base.set_direction_by_angle(out_glob_angle);
 
 			rob_base.set_speed(rob_base.fl_outSpeed->getValue());
-			
 		}
 		else
 		{

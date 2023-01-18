@@ -11,35 +11,14 @@
 #include <cstdlib>
 
 extern HANDLE sleepTimerMutex;
-extern std::mutex synchMutex;
-extern std::mutex synchMutex2;
-extern std::mutex synchMutex3;
+extern std::mutex drawRobMut;
+extern std::mutex mainRobMut;
+extern std::mutex RobDrawMut;
+extern std::mutex mainDrawMut;
 extern std::condition_variable synchCndVar;
 extern std::condition_variable synchMainDraw;
+extern std::condition_variable generationEnd;
 
-
-void debug_term_cmd(Whole_map& map, std::vector<robot_params>& rob_gen, simulation& sim1)
-{
-	std::string cmd_str;
-	int index = 0;
-	std::string nl_str = "nl";
-	std::string draw_str = "draw";
-	std::string help_str = "help";
-
-	if (!sim1.simulation_state())
-		while (!sim1.simulation_state()) Sleep(1); 
-	while (sim1.simulation_state())
-	{
-		std::cin >> cmd_str;
-		if (!strcmp(cmd_str.c_str(), draw_str.c_str()))
-			synchCndVar.notify_one();
-		else if (cmd_str.find(nl_str, index) == 0)
-			draw_obs_vars(rob_gen.at(std::atoi(cmd_str.substr(nl_str.size(), cmd_str.size() - nl_str.size()).c_str())).genes.iodsv);
-		else if (!strcmp(cmd_str.c_str(), help_str.c_str()))
-			std::cout << "type \"" << draw_str << "\" to draw current bots position \n"
-			<< "type \"" << nl_str << "[rob identificator]\" to to get fuzzy variables \n";
-	}
-}
 
 
 void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vector<_angle_type>& orientation_angle)
@@ -74,7 +53,7 @@ void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vect
 	{
 		position.x = START_ROBOT_POS_X;
 		position.y = START_ROBOT_POS_Y;
-		orientation_angle.at(idx) = 0;
+		orientation_angle.at(idx) = M_PI + atan2((position.y - AIM_POS_Y), (position.x - AIM_POS_X));
 		idx++;
 	}
 #endif
@@ -82,25 +61,103 @@ void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vect
 
 void set_map(Whole_map &map)
 {
+	//obstacle_point quadro1;
+	//obstacle_point quadro2;
+	//quadro1.x = 580;
+	//quadro1.y = 610;
+	//quadro2.x = 290;
+	//quadro2.y = 260;
+	//
+	//map.create_quadro_obstacle(100, 100, quadro1, 3);
+	//std::cout << "map p 1 " << (int)map.at(910, 920) << std::endl;
+	//
+	//map.create_quadro_obstacle(100, 100, quadro2, 3);
+
 	obstacle_point quadro1;
 	obstacle_point quadro2;
-	quadro1.x = 180;
-	quadro1.y = 210;
-	quadro2.x = 290;
-	quadro2.y = 260;
-	map.create_quadro_obstacle(50, 50, quadro1, 3);
-	map.create_quadro_obstacle(50, 50, quadro2, 3);
+	obstacle_point quadro3;
+	quadro1.x = 70;
+	quadro1.y = 400;
+	quadro2.x = 250;
+	quadro2.y = 250;
+	quadro3.x = 445;
+	quadro3.y = 100;
+	map.create_quadro_obstacle(100, 100, quadro1, 2);
+	map.create_quadro_obstacle(100, 100, quadro2, 2);
+	map.create_quadro_obstacle(100, 100, quadro3, 2);
+
+	obstacle_point line_p_1	(400, 0);
+	obstacle_point line_p_11(200, 150);
+	obstacle_point line_p_2	(170, 160);
+	obstacle_point line_p_22(0, 270);
+	obstacle_point line_p_3	(200, 150);
+	obstacle_point line_p_33(250, 50);
+	obstacle_point line_p_4	(170, 160);
+	obstacle_point line_p_44(210, 80);
+	obstacle_point line_p_5	(250, 50);
+	obstacle_point line_p_55(40, 120);
+	obstacle_point line_p_6	(210, 80);
+	obstacle_point line_p_66(5, 150);
+	obstacle_point line_p_7	(40, 120);
+	obstacle_point line_p_77(80, 50);
+	obstacle_point line_p_8	(5, 150);
+	obstacle_point line_p_88(60, 40);
+
+	map.create_line_obstacle(line_p_1, line_p_11);
+	map.create_line_obstacle(line_p_2, line_p_22);
+	map.create_line_obstacle(line_p_3, line_p_33);
+	map.create_line_obstacle(line_p_4, line_p_44);
+	map.create_line_obstacle(line_p_5, line_p_55);
+	map.create_line_obstacle(line_p_6, line_p_66);
+	map.create_line_obstacle(line_p_7, line_p_77);
+	map.create_line_obstacle(line_p_8, line_p_88);
+
+	obstacle_point circle_center1(70, 270);
+	obstacle_point circle_center2(150, 210);
+	obstacle_point circle_center3(150, 300);
+	obstacle_point circle_center4(120, 50);
+	obstacle_point circle_center5(260, 170);
+	obstacle_point circle_center6(330, 110);
+	obstacle_point circle_center7(120, 50);
+	obstacle_point circle_center8(360, 170);
+	obstacle_point circle_center9(430, 200);
+	obstacle_point circle_center10(220, 360);
+	obstacle_point circle_center11(300, 430);
+	obstacle_point circle_center12(380, 360);
+	obstacle_point circle_center13(340, 250);
+	obstacle_point circle_center14(470, 280);
+	obstacle_point circle_center15(470, 470);
+
+	map.create_circle_obstacle(circle_center1, 30);
+	map.create_circle_obstacle(circle_center2, 15);
+	map.create_circle_obstacle(circle_center3, 15);
+	map.create_circle_obstacle(circle_center4, 15);
+	map.create_circle_obstacle(circle_center5, 16);
+	map.create_circle_obstacle(circle_center6, 22);
+	map.create_circle_obstacle(circle_center7, 15);
+	map.create_circle_obstacle(circle_center8, 15);
+	map.create_circle_obstacle(circle_center9, 30);
+	map.create_circle_obstacle(circle_center10, 30);
+	map.create_circle_obstacle(circle_center11, 30);
+	map.create_circle_obstacle(circle_center12, 30);
+	map.create_circle_obstacle(circle_center13, 20);
+	map.create_circle_obstacle(circle_center14, 20);
+	map.create_circle_obstacle(circle_center15, 25);
+
 
 	map.aim.x = AIM_POS_X;
 	map.aim.y = AIM_POS_Y;
 
 	start_position_rules(map.robs_positions, map.orientation_angle);
+
 }
 
 void draw_map(sf::RenderWindow &win,
 	Whole_map &map,
 	std::vector<sf::CircleShape> &obs_space)
 {
+
+#if DRAW_WITH_POINTS
 	sf::CircleShape Circle1(0.5);
 	Circle1.setFillColor(sf::Color::Green);
 
@@ -109,6 +166,25 @@ void draw_map(sf::RenderWindow &win,
 		Circle1.setPosition(map.short_obs.at(i).x, map.short_obs.at(i).y);
 		win.draw(Circle1);
 	}
+#else
+	for (auto& line: map.lines_on_map)
+	{
+		sf::VertexArray line_sf(sf::LinesStrip, 2);
+		line_sf[0].position = sf::Vector2f(line.point1.x, line.point1.y);
+		line_sf[1].position = sf::Vector2f(line.point2.x, line.point2.y);
+		line_sf[0].color = sf::Color::Green;
+		line_sf[1].color = sf::Color::Green;
+		win.draw(line_sf);
+	}
+	for (auto& circle : map.circles_on_map)
+	{
+		sf::CircleShape circle_sf;
+		circle_sf.setFillColor(sf::Color::Green);
+		circle_sf.setRadius(circle.radius);
+		circle_sf.setPosition(circle.center.x, circle.center.y);
+		win.draw(circle_sf);
+	}
+#endif
 }
 
 void draw_other(sf::RenderWindow &win,
@@ -119,8 +195,8 @@ void draw_other(sf::RenderWindow &win,
 	sf::CircleShape Circle_path(0.5);
 	sf::CircleShape Circle_rob(0.5);
 	sf::CircleShape Circle_aim(3.f);
-	sf::CircleShape Circle_sens_line(1.f);
-	sf::CircleShape Circle_orient(1.f);
+	sf::CircleShape Circle_sens_line(0.5f);
+	sf::CircleShape Circle_orient(0.5f);
 	Circle_path.setFillColor(sf::Color::Yellow);
 
 	//catch position trough the wibe (proceedeng float to int)
@@ -133,12 +209,12 @@ void draw_other(sf::RenderWindow &win,
 
 	// Draw current robot position
 	Circle_rob.setFillColor(sf::Color::Red);
-	Circle_rob.setPosition(rob_base.position.x, rob_base.position.y);
+	Circle_rob.setPosition(rob_base.position.x , rob_base.position.y);
 	win.draw(Circle_rob);
 
 	// Draw aim (it is abscent in map space)
 	Circle_aim.setFillColor(sf::Color::Blue);
-	Circle_aim.setPosition(rob_base.aim.x, rob_base.aim.y);
+	Circle_aim.setPosition(rob_base.aim.x , rob_base.aim.y );
 	win.draw(Circle_aim);
 
 	// Draw sensor lines (there are abscent on map)
@@ -146,13 +222,13 @@ void draw_other(sf::RenderWindow &win,
 
 	for (unsigned int i = 0; i < rob_base.rob_lines_num; ++i)
 	{
-		Circle_sens_line.setPosition(rob_base.at(i).x, rob_base.at(i).y);
+		Circle_sens_line.setPosition(rob_base.at(i).x , rob_base.at(i).y );
 		sens_line_space[i] = Circle_sens_line;
 		win.draw(Circle_sens_line);
 	}
 	obstacle_point orient = rob_base.get_orientation();
 	Circle_orient.setFillColor(sf::Color::Magenta);
-	Circle_orient.setPosition(orient.x, orient.y);
+	Circle_orient.setPosition(orient.x , orient.y);
 	win.draw(Circle_orient);
 
 }
@@ -166,7 +242,7 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 	std::vector<sf::CircleShape> lines;
 	unsigned long size = map.obstacles_weight;
 	map_point robot_pos;
-	std::unique_lock<std::mutex> uLock(synchMutex2);
+	std::unique_lock<std::mutex> uLock(RobDrawMut);
 
 	Obs.resize(size);
 	//Path.resize(rob_gen.at(0).path_mem_size);
@@ -174,7 +250,6 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 
 	while (window.isOpen())
 	{
-
 		sf::Event event;
 		while (window.pollEvent(event))
 		{

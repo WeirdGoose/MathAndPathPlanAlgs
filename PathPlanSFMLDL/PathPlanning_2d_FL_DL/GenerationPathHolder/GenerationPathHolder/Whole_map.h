@@ -4,6 +4,7 @@
 #include <list>    
 #include <SFML/Graphics.hpp>
 #include "gen_pars.h"
+#include "ctrl_and_log.h"
 // file access to that everyone has, here's also general defs and usings
 
 
@@ -13,6 +14,7 @@
 
 #define MAX_MAP_SIZE_X 500
 #define MAX_MAP_SIZE_Y 500
+#define SCALE 2
 
 class Whole_map
 {
@@ -44,6 +46,8 @@ public:
 	std::vector<map_point> short_obs;
 	std::vector<obstacle_point> robs_positions;
 	std::vector<_angle_type> orientation_angle;
+	std::vector<line_obs> lines_on_map;
+	std::vector<circle_obs> circles_on_map;
 	unsigned long obstacles_weight = 0;
 	Whole_map(unsigned int width, unsigned int height) :
 		map_points(width, Column(height)) {
@@ -57,7 +61,8 @@ public:
 	
 	int8_t& at(unsigned int i, unsigned int j)
 	{
-		if (i >= MAX_MAP_SIZE_X || j > MAX_MAP_SIZE_Y
+		if (i >= MAX_MAP_SIZE_X*SCALE 
+			|| j > MAX_MAP_SIZE_Y*SCALE
 			|| i <= 0 || j <= 0)
 			return map_res;
 		else
@@ -85,6 +90,7 @@ public:
 	}
 	void update_short_obs(map_point anoth_point)
 	{
+		write_log("obs at " + std::to_string(anoth_point.x) + " " + std::to_string(anoth_point.y));
 		this->short_obs.push_back(anoth_point);
 	}
 	void create_quadro_obstacle(unsigned int width,
@@ -94,8 +100,7 @@ public:
 	{
 		map_point another_point;
 		// init horizontal lines
-		cout << "---------------quadro obs coodrinates--------------- \n\n\n";
-		cout << "width \n\n\n";
+		
 		obstacles_weight += width * height;
 		for (int j = 0; j < scale; ++j)
 		{
@@ -129,7 +134,8 @@ public:
 			}
 
 		}
-		cout << "\n\n\nHEIGHT \n\n\n";
+
+		
 		// init verical lines
 
 		for (unsigned int i = 0; i < height; ++i)
@@ -150,6 +156,53 @@ public:
 				update_short_obs(another_point);
 			}
 		}
+
+		line_obs lineHorUp(	center_point.x - width / 2, center_point.y + height / 2, 
+							center_point.x + width / 2, center_point.y + height / 2);
+
+		line_obs lineHorDown(	center_point.x - width / 2, center_point.y - height / 2,
+								center_point.x + width / 2, center_point.y - height / 2);
+
+		line_obs lineVertLeft(	center_point.x - width / 2, center_point.y - height / 2,
+								center_point.x - width / 2, center_point.y + height / 2);
+
+		line_obs lineVertRight(	center_point.x + width / 2, center_point.y - height / 2,
+								center_point.x + width / 2, center_point.y + height / 2);
+		this->lines_on_map.push_back(lineHorUp);
+		this->lines_on_map.push_back(lineHorDown);
+		this->lines_on_map.push_back(lineVertLeft);
+		this->lines_on_map.push_back(lineVertRight);
+	}
+	void create_line_obstacle(obstacle_point point1, obstacle_point point2)
+	{
+		map_point another_point;
+		for (int i = 0; i < get_distance(point1, point2); i++)
+		{
+			float lambda;
+			lambda = (get_distance(point1, point2) - i) / (i);
+			another_point.x = (point1.x + lambda * point2.x) / (1 + lambda);
+			another_point.y = (point1.y + lambda * point2.y) / (1 + lambda);
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
+		}
+		line_obs line(point1.x, point1.y, point2.x, point2.y);
+		this->lines_on_map.push_back(line);
+	}
+	void create_circle_obstacle(obstacle_point center, float radius)
+	{
+		map_point another_point;
+		for (float phi = 0; phi < 2 * M_PI; phi += 1 / (2 * M_PI*radius))
+		{
+			another_point.x = center.x + radius * cos(phi);
+			another_point.y = center.y + radius * sin(phi);
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
+		}
+		circle_obs circle;
+		circle.center.x = center.x;
+		circle.center.y = center.y;
+		circle.radius = radius;
+		this->circles_on_map.push_back(circle);
 	}
 };
 

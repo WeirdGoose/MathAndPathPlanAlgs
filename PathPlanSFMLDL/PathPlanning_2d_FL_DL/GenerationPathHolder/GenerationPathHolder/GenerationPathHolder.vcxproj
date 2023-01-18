@@ -231,6 +231,7 @@
     <ClCompile Include="C:\UtilsAndLs\fuzzylite-6.0\fuzzylite\src\variable\InputVariable.cpp" />
     <ClCompile Include="C:\UtilsAndLs\fuzzylite-6.0\fuzzylite\src\variable\OutputVariable.cpp" />
     <ClCompile Include="C:\UtilsAndLs\fuzzylite-6.0\fuzzylite\src\variable\Variable.cpp" />
+    <ClCompile Include="ctrl_and_log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manu_fuzzy_logic.cpp" />
     <ClCompile Include="robot_AI.cpp" />
@@ -238,6 +239,7 @@
     <ClCompile Include="MapDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ctrl_and_log.h" />
     <ClInclude Include="genetic_algh.h" />
     <ClInclude Include="gen_pars.h" />
     <ClInclude Include="manu_fuzzy_logic.h" />
