@@ -82,9 +82,9 @@ void set_map(Whole_map &map)
 	quadro2.y = 250;
 	quadro3.x = 445;
 	quadro3.y = 100;
-	map.create_quadro_obstacle(100, 100, quadro1, 2);
-	map.create_quadro_obstacle(100, 100, quadro2, 2);
-	map.create_quadro_obstacle(100, 100, quadro3, 2);
+	map.create_quadro_obstacle(100, 100, quadro1, 3);
+	map.create_quadro_obstacle(100, 100, quadro2, 3);
+	map.create_quadro_obstacle(100, 100, quadro3, 3);
 
 	obstacle_point line_p_1	(400, 0);
 	obstacle_point line_p_11(200, 150);
@@ -126,7 +126,6 @@ void set_map(Whole_map &map)
 	obstacle_point circle_center12(380, 360);
 	obstacle_point circle_center13(340, 250);
 	obstacle_point circle_center14(470, 280);
-	obstacle_point circle_center15(470, 470);
 
 	map.create_circle_obstacle(circle_center1, 30);
 	map.create_circle_obstacle(circle_center2, 15);
@@ -142,7 +141,6 @@ void set_map(Whole_map &map)
 	map.create_circle_obstacle(circle_center12, 30);
 	map.create_circle_obstacle(circle_center13, 20);
 	map.create_circle_obstacle(circle_center14, 20);
-	map.create_circle_obstacle(circle_center15, 25);
 
 
 	map.aim.x = AIM_POS_X;
@@ -181,7 +179,7 @@ void draw_map(sf::RenderWindow &win,
 		sf::CircleShape circle_sf;
 		circle_sf.setFillColor(sf::Color::Green);
 		circle_sf.setRadius(circle.radius);
-		circle_sf.setPosition(circle.center.x, circle.center.y);
+		circle_sf.setPosition(circle.center.x-18, circle.center.y-13);
 		win.draw(circle_sf);
 	}
 #endif

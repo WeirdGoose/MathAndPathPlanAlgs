@@ -6,8 +6,8 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 910
-#define START_ROBOT_POS_Y 920
+#define START_ROBOT_POS_X 410
+#define START_ROBOT_POS_Y 420
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
 #define AIM_POS_X 150

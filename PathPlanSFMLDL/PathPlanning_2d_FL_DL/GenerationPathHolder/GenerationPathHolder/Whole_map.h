@@ -14,7 +14,7 @@
 
 #define MAX_MAP_SIZE_X 500
 #define MAX_MAP_SIZE_Y 500
-#define SCALE 2
+#define SCALE 1
 
 class Whole_map
 {
