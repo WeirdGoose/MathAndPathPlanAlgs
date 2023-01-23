@@ -44,15 +44,23 @@ typedef struct {
 
 typedef std::vector<map_state_t_> Column;
 
-typedef struct obstacle_point_ {
-	float x;
-	float y;
-}obstacle_point;
-
 typedef struct map_point_ {
 	unsigned int x;
 	unsigned int y;
 }map_point;
+
+
+class obstacle_point {
+public:
+	float x;
+	float y;
+	obstacle_point() {}
+	obstacle_point(float x, float y)
+	{
+		this->x = x;
+		this->y = y;
+	}
+};
 
 typedef struct sensor_point_ {
 	obstacle_point pos;
@@ -62,3 +70,27 @@ typedef struct sensor_point_ {
 	_angle_type angle_from_center;
 }sensor_point;
 
+
+class line_obs {
+public:
+	obstacle_point point1;
+	obstacle_point point2;
+	line_obs() {}
+	line_obs(float p1x, float p1y, float p2x, float p2y)
+	{
+		this->point1.x = p1x;
+		this->point1.y = p1y;
+		this->point2.x = p2x;
+		this->point2.y = p2y;
+	}
+
+};
+
+typedef struct circle_obs_ {
+	obstacle_point center;
+	float radius;
+}circle_obs;
+
+
+template <class one_p, class another_p>
+float get_distance(one_p point1, another_p point2);

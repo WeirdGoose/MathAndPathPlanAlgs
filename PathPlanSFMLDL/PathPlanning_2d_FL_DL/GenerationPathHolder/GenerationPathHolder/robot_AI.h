@@ -5,12 +5,12 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 150
-#define START_ROBOT_POS_Y 150
+#define START_ROBOT_POS_X 410//150
+#define START_ROBOT_POS_Y 420//150
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
-#define AIM_POS_X 350
-#define AIM_POS_Y 350
+#define AIM_POS_X 10//350
+#define AIM_POS_Y 10//350
 #define START_ANGLE 0
 #define START_DELTA_T 0.5		// seems to be float
 #define MAX_SPEED	10.0
@@ -23,7 +23,7 @@
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
 #define ORIENT_DIST LINES_RADIUS
-#define AIM_RADIUS	6
+#define AIM_RADIUS	20
 
 
 class robot_params 
@@ -73,6 +73,7 @@ public:
 	_angle_type orientation_angle;
 	obstacle_point orient_attractive;
 	obstacle_point orient_repulsive;
+	std::vector<map_point> internal_map;
 	unsigned int rob_lines_num = LINES_NUMBER;
 	robot_params(){}
 	obstacle_point& at(unsigned int i)
@@ -95,6 +96,12 @@ public:
 	{
 		this->sensor_points[sensor_number].state = state;
 		this->sensor_points[sensor_number].distant = distant;
+	}
+	void sensors_trigg(_sensor_num_type sensor_number, int8_t distant, map_state_t_ state, map_point another_point)
+	{
+		this->sensor_points[sensor_number].state = state;
+		this->sensor_points[sensor_number].distant = distant;
+		this->internal_map.push_back(another_point);
 	}
 	void set_direction(obstacle_point direction)
 	{

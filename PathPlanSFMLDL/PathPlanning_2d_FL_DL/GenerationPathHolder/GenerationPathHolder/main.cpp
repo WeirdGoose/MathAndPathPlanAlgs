@@ -77,7 +77,7 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
 			if (map.at(sens_disc.x, sens_disc.y) == OBSTACLE_MAP_CHAR)
 			{
-				rob_base.sensors_trigg(i, j, OBSTACLE_MAP_CHAR);
+				rob_base.sensors_trigg(i, j, OBSTACLE_MAP_CHAR, sens_disc);
 				break;
 			}
 		}

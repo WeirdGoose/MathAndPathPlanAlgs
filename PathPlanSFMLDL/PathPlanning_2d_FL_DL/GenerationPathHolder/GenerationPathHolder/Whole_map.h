@@ -16,6 +16,13 @@
 #define MAX_MAP_SIZE_X 500
 #define MAX_MAP_SIZE_Y 500
 
+
+template <class one_p, class another_p>
+float get_distance(one_p point1, another_p point2)
+{
+	return sqrt(pow(point1.x - point2.x, 2) + pow(point1.y - point2.y, 2));
+}
+
 class Whole_map
 {
 	std::vector<Column> map_points;
@@ -43,6 +50,8 @@ private:
 	}
 public:
 	obstacle_point aim;
+	std::vector<line_obs> lines_on_map;
+	std::vector<circle_obs> circles_on_map;
 	std::vector<map_point> short_obs;
 	obstacle_point rob_position;
 	_angle_type orientation_angle;
@@ -59,8 +68,7 @@ public:
 	
 	int8_t& at(unsigned int i, unsigned int j)
 	{
-		if (i >= MAX_MAP_SIZE_X || j > MAX_MAP_SIZE_Y
-			|| i <= 0 || j <= 0)
+		if (i >= MAX_MAP_SIZE_X || j >= MAX_MAP_SIZE_Y)
 			return map_res;
 		else
 			return map_points[i][j];
@@ -152,6 +160,37 @@ public:
 				update_short_obs(another_point);
 			}
 		}
+	}
+	void create_line_obstacle(obstacle_point point1, obstacle_point point2)
+	{
+		map_point another_point;
+		for (int i = 0; i < get_distance(point1, point2); i++)
+		{
+			float lambda;
+			lambda = (get_distance(point1, point2) - i) / (i);
+			another_point.x = (point1.x + lambda * point2.x) / (1 + lambda);
+			another_point.y = (point1.y + lambda * point2.y) / (1 + lambda);
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
+		}
+		line_obs line(point1.x, point1.y, point2.x, point2.y);
+		this->lines_on_map.push_back(line);
+	}
+	void create_circle_obstacle(obstacle_point center, float radius)
+	{
+		map_point another_point;
+		for (float phi = 0; phi < 2 * M_PI; phi += 1 / (2 * M_PI*radius))
+		{
+			another_point.x = center.x + radius * cos(phi);
+			another_point.y = center.y + radius * sin(phi);
+			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
+			update_short_obs(another_point);
+		}
+		circle_obs circle;
+		circle.center.x = center.x;
+		circle.center.y = center.y;
+		circle.radius = radius;
+		this->circles_on_map.push_back(circle);
 	}
 };
 
