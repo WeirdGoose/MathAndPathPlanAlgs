@@ -190,8 +190,6 @@ static void init_rule(fl::RuleBlock* rule_bl, std::string name)
 
 
 
-
-
 void init_fuzzy(fl::Engine* engine, 
 				fl::InputVariable* speed, 
 				fl::InputVariable* obs_angle, 

@@ -58,14 +58,14 @@ void set_map(Whole_map &map)
 	obstacle_point line_p_77(80, 50);
 	obstacle_point line_p_8(5, 150);
 	obstacle_point line_p_88(60, 40);
-	map.create_line_obstacle(line_p_1, line_p_11);
-	map.create_line_obstacle(line_p_2, line_p_22);
+	//map.create_line_obstacle(line_p_1, line_p_11);
+	//map.create_line_obstacle(line_p_2, line_p_22);
 	map.create_line_obstacle(line_p_3, line_p_33);
 	map.create_line_obstacle(line_p_4, line_p_44);
 	//map.create_line_obstacle(line_p_5, line_p_55);
 	//map.create_line_obstacle(line_p_6, line_p_66);
-	//map.create_line_obstacle(line_p_7, line_p_77);
-	//map.create_line_obstacle(line_p_8, line_p_88);
+	map.create_line_obstacle(line_p_7, line_p_77);
+	map.create_line_obstacle(line_p_8, line_p_88);
 	obstacle_point circle_center1(70, 270);
 	obstacle_point circle_center2(150, 210);
 	obstacle_point circle_center3(150, 300);
@@ -105,13 +105,24 @@ void draw_map(sf::RenderWindow &win,
 {
 	sf::CircleShape Circle1(0.5);
 	Circle1.setFillColor(sf::Color::Green);
-#if DRAW_INTERNAL
 	for (unsigned int i = 0; i < map.short_obs.size(); ++i)
 	{
 		Circle1.setPosition(map.short_obs.at(i).x, map.short_obs.at(i).y);
 		win.draw(Circle1);
 	}
-#endif
+
+}
+
+void draw_internal_map(sf::RenderWindow &win,
+	robot_params &rob_base)
+{
+	sf::CircleShape Circle1(0.8);
+	Circle1.setFillColor(sf::Color::Blue);
+	for (unsigned int i = 0; i < rob_base.internal_map.size(); ++i)
+	{
+		Circle1.setPosition(rob_base.internal_map.at(i).x, rob_base.internal_map.at(i).y);
+		win.draw(Circle1);
+	}
 }
 
 void draw_other(sf::RenderWindow &win,
@@ -121,9 +132,9 @@ void draw_other(sf::RenderWindow &win,
 {
 	sf::CircleShape Circle_path(3);
 	sf::CircleShape Circle_rob(0.5);
-	sf::CircleShape Circle_aim(3.f);
+	sf::CircleShape Circle_aim(15.f);
 	sf::CircleShape Circle_sens_line(1.f);
-	sf::CircleShape Circle_orient(1.f);
+	sf::CircleShape Circle_orient(7.f);
 	Circle_path.setFillColor(sf::Color::Red);
 
 	//catch position trough the wibe (proceedeng float to int)
@@ -137,9 +148,12 @@ void draw_other(sf::RenderWindow &win,
 	Circle_rob.setFillColor(sf::Color::Red);
 	Circle_rob.setPosition(rob_base.position.x, rob_base.position.y);
 	win.draw(Circle_rob);
-
+#if !DRAW_INTERNAL
 	// Draw aim (it is abscent in map space)
 	Circle_aim.setFillColor(sf::Color::Blue);
+#else
+	Circle_aim.setFillColor(sf::Color::Yellow);
+#endif
 	Circle_aim.setPosition(rob_base.aim.x, rob_base.aim.y);
 	win.draw(Circle_aim);
 
@@ -152,10 +166,10 @@ void draw_other(sf::RenderWindow &win,
 		sens_line_space[i] = Circle_sens_line;
 		win.draw(Circle_sens_line);
 	}
-	obstacle_point orient = rob_base.get_orientation();
-	Circle_orient.setFillColor(sf::Color::Red);
-	Circle_orient.setPosition(orient.x, orient.y);
-	win.draw(Circle_orient);
+	//obstacle_point orient = rob_base.get_orientation();
+	//Circle_orient.setFillColor(sf::Color::Red);
+	//Circle_orient.setPosition(orient.x, orient.y);
+	//win.draw(Circle_orient);
 
 }
 
@@ -185,8 +199,11 @@ void scene_movment(Whole_map &map, robot_params &rob_base, simulation &sim)
 		synchCndVar.notify_one();
 		WAIT_FOR_DRIVE(synchCndVar, uLock);
 		window.clear();
+#if DRAW_INTERNAL
+		draw_internal_map(window, rob_base);
+#else
 		draw_map(window, map, Obs);
-		
+#endif
 		draw_other(window, map, rob_base, lines);
 		window.display();
 		SIGNAL_TO_DRIVE(synchCndVar);

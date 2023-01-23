@@ -77,7 +77,8 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
 			if (map.at(sens_disc.x, sens_disc.y) == OBSTACLE_MAP_CHAR)
 			{
-				rob_base.sensors_trigg(i, j, OBSTACLE_MAP_CHAR, sens_disc);
+				rob_base.sensors_trigg(i, get_distance(rob_base.position, sens_disc), OBSTACLE_MAP_CHAR);
+				//rob_base.sensors_trigg(i, j, OBSTACLE_MAP_CHAR);
 				break;
 			}
 		}
@@ -156,6 +157,8 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	while (sim.simulation_state()) 
 	{
 		WAIT_FOR_DRAW(synchCndVar, uLock);
+		if (get_distance(rob_base.position, rob_base.aim) < 50)
+			exit_ctrl = 1;
 		if (exit_ctrl)
 		{
 			SIGNAL_TO_DRAW(synchCndVar);

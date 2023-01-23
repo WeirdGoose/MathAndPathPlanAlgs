@@ -5,12 +5,12 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 410//150
+#define START_ROBOT_POS_X 250//150
 #define START_ROBOT_POS_Y 420//150
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
-#define AIM_POS_X 10//350
-#define AIM_POS_Y 10//350
+#define AIM_POS_X 15//350
+#define AIM_POS_Y 20//350
 #define START_ANGLE 0
 #define START_DELTA_T 0.5		// seems to be float
 #define MAX_SPEED	10.0
@@ -23,7 +23,7 @@
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
 #define ORIENT_DIST LINES_RADIUS
-#define AIM_RADIUS	20
+#define AIM_RADIUS	15
 
 
 class robot_params 
@@ -92,10 +92,29 @@ public:
 	{
 		return this->orientation;
 	}
-	void sensors_trigg(_sensor_num_type sensor_number, int8_t distant, map_state_t_ state)
+	void sensors_trigg(_sensor_num_type sensor_number, float distant, map_state_t_ state)
 	{
 		this->sensor_points[sensor_number].state = state;
 		this->sensor_points[sensor_number].distant = distant;
+		if (state != EMPTY_SPACE_MAP_CHAR)
+		{
+			obstacle_point another_point;
+			another_point.x = this->sensor_points[0].pos.x - this->position.x;
+			another_point.y = this->sensor_points[0].pos.y - this->position.y;
+			another_point.x = another_point.x * cos(this->sensor_points[sensor_number].angle_from_center)
+				- another_point.y * sin(this->sensor_points[sensor_number].angle_from_center);
+
+			another_point.y = another_point.x * sin(this->sensor_points[sensor_number].angle_from_center)
+				+ another_point.y * cos(this->sensor_points[sensor_number].angle_from_center);
+
+			another_point.x = this->position.x + another_point.x * distant / LINES_RADIUS;
+			another_point.y = this->position.y + another_point.y * distant / LINES_RADIUS;
+			map_point mp_p;
+			mp_p.x = (unsigned int)another_point.x;
+			mp_p.y = (unsigned int)another_point.y;
+			this->internal_map.push_back(mp_p);
+		}
+		
 	}
 	void sensors_trigg(_sensor_num_type sensor_number, int8_t distant, map_state_t_ state, map_point another_point)
 	{
