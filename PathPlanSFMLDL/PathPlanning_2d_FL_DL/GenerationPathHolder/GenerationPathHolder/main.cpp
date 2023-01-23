@@ -71,7 +71,7 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 	{
 		sens_obs = sensor_points_ptr[i];
 		rob_base.sensors_trigg(i, LINES_RADIUS + 1, EMPTY_SPACE_MAP_CHAR);
-		for (int8_t j = 0; j < rob_base.sens_math_lambdas.size(); ++j)
+		for (int j = 0; j < rob_base.sens_math_lambdas.size(); ++j)
 		{
 			sens_disc.x = (rob_base.position.x + rob_base.sens_math_lambdas[j] * sens_obs.pos.x) / (1 + rob_base.sens_math_lambdas[j]);
 			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
@@ -157,17 +157,19 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 	while (sim.simulation_state()) 
 	{
 		WAIT_FOR_DRAW(synchCndVar, uLock);
-		if (get_distance(rob_base.position, rob_base.aim) < 50)
-			exit_ctrl = 1;
+		
 		if (exit_ctrl)
 		{
 			SIGNAL_TO_DRAW(synchCndVar);
 			return;
 		}
+		if (std::isnan(rob_base.orientation_angle))
+			cout << "";
 		check_sensors(map, rob_base);
 		exit_ctrl = robot_active_cyc(map, rob_base, _fuzzy_set_);
 		sensor_points_ptr = rob_base.get_sensor_points();
-
+		if (std::isnan(rob_base.orientation_angle))
+			cout << "";
 		make_one_step(map, rob_base);
 		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
 	}

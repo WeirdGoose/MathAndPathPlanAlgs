@@ -10,9 +10,8 @@
 
 typedef float _speed_space;
 
-
 void init_fuzzy(fl::Engine* engine,
-	fl::InputVariable* speed,
+	fl::InputVariable* distance,
 	fl::InputVariable* obs_angle,
 	fl::OutputVariable* mSteer,
 	fl::OutputVariable* outSpeed,

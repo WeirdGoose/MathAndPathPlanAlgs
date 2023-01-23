@@ -5,21 +5,21 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 250//150
+#define START_ROBOT_POS_X 410//150
 #define START_ROBOT_POS_Y 420//150
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
 #define AIM_POS_X 15//350
-#define AIM_POS_Y 20//350
+#define AIM_POS_Y 40//350
 #define START_ANGLE 0
 #define START_DELTA_T 0.5		// seems to be float
 #define MAX_SPEED	10.0
 #define MAX_SPEED_2 MAX_SPEED*MAX_SPEED
 #define START_SPEED MAX_SPEED
 
-#define LINES_NUMBER 11
+#define LINES_NUMBER 60
 #define LINES_RADIUS 30
-#define NUM_OF_SENS_CHK_STEPS 30
+#define NUM_OF_SENS_CHK_STEPS LINES_RADIUS
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
 #define ORIENT_DIST LINES_RADIUS
@@ -58,10 +58,11 @@ class robot_params
 	}
 public:
 	fl::Engine* engine;
-	fl::InputVariable* fl_speed;
+	//fl::InputVariable* fl_aim_angle;
 	fl::InputVariable* fl_obs_angle;
 	fl::OutputVariable* mSteer;
 	fl::OutputVariable* fl_outSpeed;
+	fl::InputVariable* fl_distance;
 	fl::RuleBlock* mamdani;
 	std::vector<obstacle_point> Path;
 	std::vector<sens_det_dist_> sens_math_lambdas;	// array of rate vectors for every n compare points  of 1 sensor line(or sensor point)
@@ -114,7 +115,6 @@ public:
 			mp_p.y = (unsigned int)another_point.y;
 			this->internal_map.push_back(mp_p);
 		}
-		
 	}
 	void sensors_trigg(_sensor_num_type sensor_number, int8_t distant, map_state_t_ state, map_point another_point)
 	{
@@ -153,12 +153,12 @@ public:
 			this->sens_math_lambdas[i] = (float)i/((float)LINES_RADIUS - (float)i);
 			cout << i << " sens_math_lambda " << sens_math_lambdas[i] << " \n";
 		}
-		for (int8_t i = 0; i < LINES_NUMBER / 2 + 1; ++i)
+		for (int i = 0; i < LINES_NUMBER / 2 + 1; ++i)
 		{
 			this->sensor_points[i].angle_from_center = i * SENSOR_RAD_STEP;
 			cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";
 		}
-		for (int8_t i = LINES_NUMBER / 2 + 1; i < LINES_NUMBER; ++i)
+		for (int i = LINES_NUMBER / 2 + 1; i < LINES_NUMBER; ++i)
 		{
 			this->sensor_points[i].angle_from_center = ((LINES_NUMBER / 2) - i) * SENSOR_RAD_STEP;
 			cout << "ang - " << this->sensor_points[i].angle_from_center << "\n";

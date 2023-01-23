@@ -27,14 +27,15 @@ void init_logic(Whole_map &map, robot_params &rob_base)
 	rob_base.terms.resize(SPEED_TERMS_NUM);
 	
 	rob_base.engine =		new fl::Engine;
-	rob_base.fl_speed =		new fl::InputVariable;
+	//rob_base.fl_aim_angle =	new fl::InputVariable;
 	rob_base.fl_obs_angle = new fl::InputVariable;
 	rob_base.mSteer =		new fl::OutputVariable;
 	rob_base.fl_outSpeed =	new fl::OutputVariable;
 	rob_base.mamdani =		new fl::RuleBlock;
+	rob_base.fl_distance =	new fl::InputVariable;
 
 	init_fuzzy(rob_base.engine, 
-		rob_base.fl_speed, 
+		rob_base.fl_distance,
 		rob_base.fl_obs_angle, 
 		rob_base.mSteer, 
 		rob_base.fl_outSpeed, 
@@ -73,6 +74,8 @@ float sens_loc_angle_by_num(_sensor_num_type num)
 
 float orient_from_local_angle(float angle, float currGlobalAngle)
 {
+	if (std::isnan(angle))
+		cout << "";
 	return currGlobalAngle + angle*M_PI/180;
 }
 
@@ -144,13 +147,13 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 	{
 		sensor_point *sensor_points_ptr;
 		uint8_t num = 0;
-		float min_dist = sens_react_rad + 1;
+		float min_dist = LINES_RADIUS;
 		sensor_points_ptr = rob_base.get_sensor_points();
 
 		for (_sensor_num_type i = 0; i < rob_base.rob_lines_num; ++i)
 		{
 			if (sensor_points_ptr[i].state == OBSTACLE_MAP_CHAR
-				&& sensor_points_ptr[i].distant < sens_react_rad)
+				&& sensor_points_ptr[i].distant < LINES_RADIUS - 1)
 			{
 				if (min_dist > sensor_points_ptr[i].distant)
 				{
@@ -159,17 +162,19 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 				}
 			}
 		}
-		if (min_dist != sens_react_rad + 1)
+		if (min_dist != LINES_RADIUS)
 		{
 			float angle_ctrl = sens_loc_angle_by_num(num);
-			rob_base.fl_speed->setValue(rob_base.get_speed());
+			//rob_base.fl_aim_angle->setValue(rob_base.get_speed());
+
 			rob_base.fl_obs_angle->setValue(angle_ctrl);
+			rob_base.fl_distance->setValue(min_dist);
 			rob_base.engine->process();
 
 			cout << "out angle value is " << rob_base.mSteer->getValue() << "\n";
 
 			float out_glob_angle = orient_from_local_angle(rob_base.mSteer->getValue(), rob_base.orientation_angle);
-
+			
 			cout << "in angle is " << angle_ctrl << " fl angle is "
 				<< fl::Op::str(rob_base.fl_obs_angle->getValue()) << "\n";
 
@@ -178,6 +183,7 @@ BOOL robot_active_cyc(Whole_map &map, robot_params &rob_base, enum active_cyc_mo
 			rob_base.set_direction_by_angle(out_glob_angle);
 
 			rob_base.set_speed(rob_base.fl_outSpeed->getValue());
+
 		}
 		else
 		{
