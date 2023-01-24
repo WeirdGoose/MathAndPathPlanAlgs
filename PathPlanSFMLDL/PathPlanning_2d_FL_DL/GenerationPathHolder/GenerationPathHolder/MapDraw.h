@@ -43,7 +43,7 @@ public:
 	}
 };
 
-void set_map(Whole_map &map);
+void set_map(Whole_map &map, bool one_rob_mode = 0);
 
 void draw_map(sf::RenderWindow &win,
 	Whole_map &map,
@@ -55,9 +55,8 @@ void draw_other(sf::RenderWindow &win,
 	std::vector<sf::CircleShape> &sens_line_space);
 
 void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vector<_angle_type>& orientation_angle);
-void scene_movment(	Whole_map &map, 
-					std::vector<robot_params>& rob_gen,
-					simulation &sim	);
+//void scene_movment(	Whole_map &map, std::vector<robot_params>& rob_gen,	simulation &sim	);
+void scene_movment(Whole_map& map, robot_params& rob_base, simulation& sim);
 void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_point rob_pos);
 void robot_logic(Whole_map &map, 
 					robot_params &rob_base,

@@ -6,8 +6,8 @@
 
 
 // in whole_map coordinate system
-#define START_ROBOT_POS_X 410
-#define START_ROBOT_POS_Y 420
+#define START_ROBOT_POS_X 450
+#define START_ROBOT_POS_Y 440
 #define ROBOT_SIGHT_POINT_X START_ROBOT_POS_X + 1
 #define ROBOT_SIGHT_POINT_Y START_ROBOT_POS_Y + 1
 #define AIM_POS_X 150
@@ -19,7 +19,7 @@
 #define START_SPEED MAX_SPEED
 
 #define LINES_NUMBER 180
-#define LINES_RADIUS 30
+#define LINES_RADIUS 90
 #define NUM_OF_SENS_CHK_STEPS 30
 #define SENSOR_RAD M_PI
 #define SENSOR_RAD_STEP SENSOR_RAD/(LINES_NUMBER)
@@ -80,6 +80,7 @@ public:
 	rob_pop_type_ identificator;
 	obstacle_point orient_attractive;
 	obstacle_point orient_repulsive;
+	unsigned long long fine;
 	unsigned int rob_lines_num = LINES_NUMBER;
 	robot_params(){}
 	obstacle_point& at(unsigned int i)

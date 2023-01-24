@@ -23,6 +23,9 @@ using std::list;
 #define ROBOT_MAP_CHAR 2
 #define ROBOT_PATH_MAP_CHAR 3
 
+#define ONE_AGENT_CHECK 1
+
+
 enum active_cyc_mode {
 	_speed_setting_,
 	_rotation_setting_,
@@ -57,10 +60,17 @@ public:
 	}
 };
 
-typedef struct map_point_ {
+class map_point {
+public:
 	unsigned int x;
 	unsigned int y;
-}map_point;
+	map_point(){}
+	map_point(unsigned int x, unsigned int y)
+	{
+		this->x = x;
+		this->y = y;
+	}
+};
 
 typedef struct sensor_point_ {
 	obstacle_point pos;

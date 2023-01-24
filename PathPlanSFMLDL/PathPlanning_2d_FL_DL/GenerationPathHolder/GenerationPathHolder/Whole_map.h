@@ -62,8 +62,7 @@ public:
 	int8_t& at(unsigned int i, unsigned int j)
 	{
 		if (i >= MAX_MAP_SIZE_X*SCALE 
-			|| j > MAX_MAP_SIZE_Y*SCALE
-			|| i <= 0 || j <= 0)
+			|| j >= MAX_MAP_SIZE_Y*SCALE)
 			return map_res;
 		else
 			return map_points[i][j];
@@ -90,8 +89,23 @@ public:
 	}
 	void update_short_obs(map_point anoth_point)
 	{
-		write_log("obs at " + std::to_string(anoth_point.x) + " " + std::to_string(anoth_point.y));
+		//write_log("obs at " + std::to_string(anoth_point.x) + " " + std::to_string(anoth_point.y));
 		this->short_obs.push_back(anoth_point);
+	}
+	void add_point_with_width(map_point another_point)
+	{
+		const uint32_t wdth = 3;
+		const uint32_t hght = 3;
+		for (int i = 0; i < wdth; i++)
+		{
+			at(another_point.x - i, another_point.y) = OBSTACLE_MAP_CHAR;
+			update_short_obs(map_point(another_point.x - i, another_point.y));
+		}
+		for (int i = 0; i < hght; i++)
+		{
+			at(another_point.x, another_point.y - i) = OBSTACLE_MAP_CHAR;
+			update_short_obs(map_point(another_point.x, another_point.y - i));
+		}
 	}
 	void create_quadro_obstacle(unsigned int width,
 								unsigned int height,
@@ -106,13 +120,11 @@ public:
 		{
 			another_point.x = center_point.x - (width / 2) + width + 1;
 			another_point.y = center_point.y + height / 2 + j;
-			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-			update_short_obs(another_point);
+			add_point_with_width(another_point);
 
 			another_point.x = center_point.x + width / 2 + j;
 			another_point.y = center_point.y - (height / 2) + height + 1;
-			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-			update_short_obs(another_point);
+			add_point_with_width(another_point);
 		}
 
 		for (unsigned int i = 0; i < width; i++)
@@ -121,16 +133,14 @@ public:
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y - height / 2 + j;
-				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-				update_short_obs(another_point);
+				add_point_with_width(another_point);
 			}
 			
 			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x - width / 2 + i;
 				another_point.y = center_point.y + height / 2 + j;
-				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-				update_short_obs(another_point);
+				add_point_with_width(another_point);
 			}
 
 		}
@@ -144,16 +154,14 @@ public:
 			{
 				another_point.x = center_point.x - width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
-				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-				update_short_obs(another_point);
+				add_point_with_width(another_point);
 			}
 			
 			for (int j = 0; j < scale; ++j)
 			{
 				another_point.x = center_point.x + width / 2 + j;
 				another_point.y = center_point.y - height / 2 + i;
-				this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-				update_short_obs(another_point);
+				add_point_with_width(another_point);
 			}
 		}
 
@@ -179,11 +187,10 @@ public:
 		for (int i = 0; i < get_distance(point1, point2); i++)
 		{
 			float lambda;
-			lambda = (get_distance(point1, point2) - i) / (i);
+			lambda = (i)/(get_distance(point1, point2) - i);
 			another_point.x = (point1.x + lambda * point2.x) / (1 + lambda);
 			another_point.y = (point1.y + lambda * point2.y) / (1 + lambda);
-			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-			update_short_obs(another_point);
+			add_point_with_width(another_point);
 		}
 		line_obs line(point1.x, point1.y, point2.x, point2.y);
 		this->lines_on_map.push_back(line);
@@ -195,8 +202,7 @@ public:
 		{
 			another_point.x = center.x + radius * cos(phi);
 			another_point.y = center.y + radius * sin(phi);
-			this->map_points[another_point.x][another_point.y] = OBSTACLE_MAP_CHAR;
-			update_short_obs(another_point);
+			add_point_with_width(another_point);
 		}
 		circle_obs circle;
 		circle.center.x = center.x;

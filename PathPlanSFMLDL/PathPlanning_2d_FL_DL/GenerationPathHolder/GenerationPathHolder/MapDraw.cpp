@@ -9,6 +9,9 @@
 #include <condition_variable>
 #include "genetic_algh.h"
 #include <cstdlib>
+#include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/Font.hpp>
+
 
 extern HANDLE sleepTimerMutex;
 extern std::mutex drawRobMut;
@@ -59,7 +62,7 @@ void start_position_rules(std::vector<obstacle_point> &robs_positions, std::vect
 #endif
 }
 
-void set_map(Whole_map &map)
+void set_map(Whole_map &map, bool one_rob_mode)
 {
 	//obstacle_point quadro1;
 	//obstacle_point quadro2;
@@ -107,10 +110,10 @@ void set_map(Whole_map &map)
 	map.create_line_obstacle(line_p_2, line_p_22);
 	map.create_line_obstacle(line_p_3, line_p_33);
 	map.create_line_obstacle(line_p_4, line_p_44);
-	map.create_line_obstacle(line_p_5, line_p_55);
-	map.create_line_obstacle(line_p_6, line_p_66);
-	map.create_line_obstacle(line_p_7, line_p_77);
-	map.create_line_obstacle(line_p_8, line_p_88);
+	//map.create_line_obstacle(line_p_5, line_p_55);
+	//map.create_line_obstacle(line_p_6, line_p_66);
+	//map.create_line_obstacle(line_p_7, line_p_77);
+	//map.create_line_obstacle(line_p_8, line_p_88);
 
 	obstacle_point circle_center1(70, 270);
 	obstacle_point circle_center2(150, 210);
@@ -142,18 +145,27 @@ void set_map(Whole_map &map)
 	map.create_circle_obstacle(circle_center13, 20);
 	map.create_circle_obstacle(circle_center14, 20);
 
-
 	map.aim.x = AIM_POS_X;
 	map.aim.y = AIM_POS_Y;
 
-	start_position_rules(map.robs_positions, map.orientation_angle);
-
+	if (one_rob_mode == 1)
+	{
+		map.robs_positions.push_back(obstacle_point(START_ROBOT_POS_X, START_ROBOT_POS_Y));
+		map.orientation_angle.push_back((float)M_PI + atan2((START_ROBOT_POS_Y - AIM_POS_Y), (START_ROBOT_POS_X - AIM_POS_X)));
+	}									  
+	else
+	{
+		start_position_rules(map.robs_positions, map.orientation_angle);
+	}
 }
 
 void draw_map(sf::RenderWindow &win,
 	Whole_map &map,
 	std::vector<sf::CircleShape> &obs_space)
 {
+	sf::Font font;
+	font.loadFromFile("arial.ttf");
+
 
 #if DRAW_WITH_POINTS
 	sf::CircleShape Circle1(0.5);
@@ -180,7 +192,15 @@ void draw_map(sf::RenderWindow &win,
 		circle_sf.setFillColor(sf::Color::Green);
 		circle_sf.setRadius(circle.radius);
 		circle_sf.setPosition(circle.center.x-18, circle.center.y-13);
+		sf::Text text("hello", font);
+		text.setCharacterSize(30);
+		text.setStyle(sf::Text::Bold);
+		text.setFillColor(sf::Color::Red);
+		text.setPosition(circle_sf.getPosition());
 		win.draw(circle_sf);
+
+		win.draw(text);
+
 	}
 #endif
 }
@@ -258,7 +278,7 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 		WAIT_FOR_DRIVE(synchCndVar, uLock);
 		window.clear();
 		draw_map(window, map, Obs);
-		
+
 		for (auto& rob_base : rob_gen)
 			draw_other(window, map, rob_base, lines);
 		window.display();
@@ -267,3 +287,37 @@ void scene_movment(Whole_map &map, std::vector<robot_params>& rob_gen, simulatio
 	sim.off_simulation();
 }
 
+void scene_movment(Whole_map& map, robot_params& rob_base, simulation& sim)
+{
+
+	sf::RenderWindow window(sf::VideoMode(map.get("width"), map.get("height")), "SFML works!");
+	std::vector<sf::CircleShape> Obs;
+	std::vector<map_point> Path;
+	std::vector<sf::CircleShape> lines;
+	unsigned long size = map.obstacles_weight;
+	map_point robot_pos;
+	std::unique_lock<std::mutex> uLock(RobDrawMut);
+
+	Obs.resize(size);
+	//Path.resize(rob_gen.at(0).path_mem_size);
+	lines.resize(LINES_NUMBER);
+
+	while (window.isOpen())
+	{
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				window.close();
+		}
+		synchMainDraw.notify_one();
+		WAIT_FOR_DRIVE(synchCndVar, uLock);
+		window.clear();
+		draw_map(window, map, Obs);
+
+		draw_other(window, map, rob_base, lines);
+		window.display();
+		SIGNAL_TO_DRIVE(synchCndVar);
+	}
+	sim.off_simulation();
+}

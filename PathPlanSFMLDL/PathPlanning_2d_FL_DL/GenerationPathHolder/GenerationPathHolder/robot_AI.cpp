@@ -52,11 +52,14 @@ void init_logic(robot_params &rob_base, rob_pop_type_ identificator)
 	rob_base.delta_t = START_DELTA_T;
 	rob_base.chosen_one = 0;
 	rob_base.steps_number = 0;
-
 	rob_base.aim.x = AIM_POS_X;
 	rob_base.aim.y = AIM_POS_Y;
 	rob_base.set_speed(START_SPEED);
 	rob_base.set_direction(rob_base.aim);
+	rob_base.position.x = START_ROBOT_POS_X;
+	rob_base.position.y = START_ROBOT_POS_Y;
+	rob_base.set_start_pos_and_dir(rob_base.position, M_PI + atan2((rob_base.position.y - AIM_POS_Y), (rob_base.position.x - AIM_POS_X)));
+
 
 	rob_base.identificator = identificator;
 	

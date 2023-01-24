@@ -187,16 +187,31 @@ void genetic_start(	std::vector<robot_params>& rob_gen,
 		sorted.push_back(&rob_gen.at(i));
 	for (int i = 0; i < rob_gen.size(); i++)
 	{
-		for (int j = 0; j < sorted.size() - i - 1; j++)
+		if (sorted.at(i)->failure)
 		{
-			if (sorted.at(j)->steps_number > sorted.at(j + 1)->steps_number)
-				std::swap(sorted.at(j)->steps_number, sorted.at(j + 1)->steps_number);
+			for (int j = 0; j < sorted.at(i)->path.size(); j++)
+			{
+				sorted.at(i)->fine += pow(get_distance(sorted.at(i)->path.at(j), sorted.at(i)->aim), 2);
+			}
+		}
+		else
+		{
+			sorted.at(i)->fine = sorted.at(i)->steps_number;
 		}
 	}
+	for (int i = 0; i < rob_gen.size(); i++)
+	{
+		for (int j = 0; j < sorted.size() - i - 1; j++)
+		{
+			if (sorted.at(j)->fine > sorted.at(j + 1)->fine)
+				std::swap(sorted.at(j)->fine, sorted.at(j + 1)->fine);
+		}
+	}
+
 	save_logs(gen_logger, generation, sorted);
 	
-	static const size_t chosen_ones = GEN_POPULATION / 4;
-	static const size_t new_ones = GEN_POPULATION / 4;
+	static size_t chosen_ones = GEN_POPULATION / 4;
+	static size_t new_ones = GEN_POPULATION / 4;
 	static size_t one_parent_childs = 2 * (GEN_POPULATION - chosen_ones - new_ones) / chosen_ones;
 
 	// проверка на то чтобы у каждых 2х родителей было одинаковое число потомков (кратность числа потомков родителям)
@@ -209,7 +224,7 @@ void genetic_start(	std::vector<robot_params>& rob_gen,
 
 	for (int i = 0; i < chosen_ones; i++)
 		sorted.at(i)->chosen_one = 1;
-	cout << "generation " << (uint32_t)generation << " steps " << sorted.at(0)->steps_number << "\n";
+	cout << "generation " << (uint32_t)generation << " best steps " << sorted.at(0)->steps_number << " less fine " << sorted.at(0)->fine << "\n";
 	// скрещиваем победителей, устанавливаем их потомков вместо проигравших, (по алгоритму должно сотаться несколько ячеек для новеньких)
 	variables_set tmp_child_genes[4];
 	for (rob_pop_type_ anoth_parent = 0; anoth_parent < chosen_ones; anoth_parent += 2)

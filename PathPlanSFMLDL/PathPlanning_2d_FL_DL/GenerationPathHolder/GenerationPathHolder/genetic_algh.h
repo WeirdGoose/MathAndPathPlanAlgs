@@ -5,8 +5,8 @@
 #include "MapDraw.h"
 #include "manu_fuzzy_logic.h" 
 
-#define GENERATIONS_NUM 10
-#define GEN_POPULATION	8
+#define GENERATIONS_NUM 40
+#define GEN_POPULATION	32
 
 typedef uint8_t generation_type;
 
@@ -16,6 +16,7 @@ public:
 	rob_pop_type_ identificator;
 	variables_set genes;
 	std::vector<obstacle_point> path;
+	unsigned long long fine;
 	BOOL failure;
 	generation_type generation;
 	genetic_log()

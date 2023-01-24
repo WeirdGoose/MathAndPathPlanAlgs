@@ -47,7 +47,17 @@ int main()
 	rob_gen.resize(GEN_POPULATION);
 
 	Whole_map map(map_width, map_heigth); 
-	//Create
+#if ONE_AGENT_CHECK
+	robot_params rob_base;
+	set_map(map);
+	init_logic(rob_base, 0);
+	sim1.start_simulation();
+	std::thread rob_l(robot_logic, std::ref(map), std::ref(rob_base), std::ref(sim1));
+	std::thread graphics(scene_movment, std::ref(map), std::ref(rob_base), std::ref(sim1));
+	//std::thread debug_terminal(debug_term_cmd, std::ref(map), std::ref(rob_gen), std::ref(sim1));
+
+
+#else
 	std::vector<std::thread> rob_gen_ai;
 	rob_gen_ai.resize(GEN_POPULATION);
 
@@ -78,7 +88,7 @@ int main()
 		//for (rob_pop_type_ rob_num = 0; rob_num < rob_gen.size(); ++rob_num)
 		//	delete rob_gen_ai.at(rob_num);
 	}
-
+#endif
 	while (sim1.simulation_state())
 		Sleep(100);
 
@@ -100,7 +110,7 @@ void check_sensors(Whole_map &map, robot_params &rob_base)
 	{
 		sens_obs = sensor_points_ptr[i];
 		rob_base.sensors_trigg(i, LINES_RADIUS + 1, EMPTY_SPACE_MAP_CHAR);
-		for (int8_t j = 0; j < rob_base.sens_math_lambdas.size(); ++j)
+		for (uint16_t j = 0; j < rob_base.sens_math_lambdas.size(); ++j)
 		{
 			sens_disc.x = (rob_base.position.x + rob_base.sens_math_lambdas[j] * sens_obs.pos.x) / (1 + rob_base.sens_math_lambdas[j]);
 			sens_disc.y = (rob_base.position.y + rob_base.sens_math_lambdas[j] * sens_obs.pos.y) / (1 + rob_base.sens_math_lambdas[j]);
@@ -147,7 +157,7 @@ void direct_sensors(sensor_point *sensor_points, _angle_type angle, obstacle_poi
 BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 {
 	
-	const _angle_type max_rotation_ability = 0.2*M_PI;
+	const _angle_type max_rotation_ability = 0.9*M_PI;
 	const float skid_coeff = max_rotation_ability;
 	rob_pop_type_ identificator = rob_base.identificator;
 	_speed_type real_speed = rob_base.get_speed() + ROB_ERROR_SPEED;
@@ -163,7 +173,7 @@ BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 		return 1;
 	}
 
-	_angle_type rotation_strength;
+	_angle_type rotation_strength = 0;
 	_angle_type prev_curr_rot_diff = abs(map.orientation_angle.at(identificator) - rob_base.orientation_angle);
 
 	// angles range should be from 0 to 2*M_PI
@@ -182,8 +192,8 @@ BOOL make_one_step(Whole_map &map, robot_params &rob_base)
 
 	map.robs_positions.at(identificator).x = rob_base.position.x + real_speed * cos(map.orientation_angle.at(identificator)) * rob_base.delta_t;
 	map.robs_positions.at(identificator).y = rob_base.position.y + real_speed * sin(map.orientation_angle.at(identificator)) * rob_base.delta_t;
-	map.robs_positions.at(identificator).x += real_speed * cos(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
-	map.robs_positions.at(identificator).y += real_speed * sin(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
+	map.robs_positions.at(identificator).x += rotation_strength * real_speed * cos(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
+	map.robs_positions.at(identificator).y += rotation_strength * real_speed * sin(last_orientation) * rob_base.delta_t * abs(last_orientation - map.orientation_angle.at(identificator)) / max_rotation_ability;
 	
 	rob_base.position.x = map.robs_positions.at(identificator).x;
 	rob_base.position.y = map.robs_positions.at(identificator).y;
@@ -235,13 +245,14 @@ void robot_logic(Whole_map &map, robot_params &rob_base, simulation &sim)
 		
 		if(!exit_ctrl)
 			exit_ctrl = make_one_step(map, rob_base);
-		if (rob_base.steps_number > 300)
+#if !ONE_AGENT_CHECK
+		if (rob_base.steps_number > 10000000)
 		{
 			rob_base.failure = 1;
 			rob_base.steps_number = 300 + get_distance(rob_base.aim, rob_base.position);
 			exit_ctrl = 1;
 		}
-			
+#endif
 		direct_sensors(sensor_points_ptr, rob_base.orientation_angle, rob_base.position);
 		//sensor_points_ptr = rob_base.get_sensor_points();
 		//direct_sensors(sensor_points_ptr, map.orientation_angle, map.rob_position);
